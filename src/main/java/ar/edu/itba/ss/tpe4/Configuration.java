@@ -1,6 +1,5 @@
 package ar.edu.itba.ss.tpe4;
 
-import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -8,8 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -21,7 +20,15 @@ public final class Configuration {
     private static double timeStep; 
     private static int timeLimit;
     
+    public static final int AREA_BORDER_LENGTH = 2;
     private static final int OSCILLATOR_PARTICLE_COUNT = 1;
+    private static final double OSCILLATOR_RADIUS = 0;
+    private static final double OSCILLATOR_MASS = 70; // kg
+    private static final double OSCILLATOR_K = 10e4; // N/m
+    private static final double OSCILLATOR_GAMMA = 100; // kg/s
+    private static final double OSCILLATOR_A = 1; // HACER
+    private static final double OSCILLATOR_INIT_POS = 1; // m
+    private static final double OSCILLATOR_INIT_VEL = - OSCILLATOR_A * OSCILLATOR_GAMMA / (2 * OSCILLATOR_MASS); // m/s
     private static final int GAS_PARTICLE_COUNT = 300;
 
     private Configuration() {
@@ -75,53 +82,65 @@ public final class Configuration {
 
     /* Parameters must have already been requested */
     public static List<Particle> generateRandomInputFilesAndParseConfiguration() {
-        generateRandomInputFile();
+        generateInputFile();
         List<Particle> particles = parseConfiguration();
         generateOvitoOutputFile();
         return particles;
     }
 
     private static List<Particle> parseConfiguration() {
-        List<Particle> particles = new ArrayList<>();
-
         try(BufferedReader br = new BufferedReader(new FileReader(inputFileName))) {
             /* Time (0) */
             br.readLine();
-
-            /* Big Particle Properties */
-            String line = br.readLine();
-            if(line == null)
-                failWithMessage("Particles do not match particle count.");
-            String[] attributes = line.split(" ");
-            attributes = removeSpaces(attributes);
-            setParticleProperties(particles, attributes, true);
-
-            /* Small Particle Properties */
-            for(int i = 0; i < smallParticleCount; i++) {
-                line = br.readLine();
-                if(line == null)
-                    failWithMessage("Particles do not match particle count.");
-                attributes = line.split(" ");
-                attributes = removeSpaces(attributes);
-                setParticleProperties(particles, attributes, false);
-                // ADD PARTICLE
+            
+            switch(mode) {
+            case OSCILLATOR:
+            	return parseOscillatorConfig(br);
+			case LENNARD_JONES_GAS:
+            	return parseGasConfig();
+            default:
+            	throw new IllegalStateException();
             }
         } catch(Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
-
-        return particles;
+        return Collections.emptyList();
     }
 
-    private static String[] removeSpaces(final String[] array) {
+	private static List<Particle> parseOscillatorConfig(final BufferedReader br) throws IOException {
+		List<Particle> particles = new ArrayList<>();
+    	String line = br.readLine();
+        if(line == null)
+            failWithMessage("Particles do not match particle count.");
+        String[] attributes = line.split(" ");
+        attributes = removeSpaces(attributes);
+        setParticleProperties(particles, attributes);
+        return particles;
+	}
+	
+    private static List<Particle> parseGasConfig() throws IOException {
+    	List<Particle> particles = new ArrayList<>();
+//      for(int i = 0; i < smallParticleCount; i++) {
+//          line = br.readLine();
+//          if(line == null)
+//              failWithMessage("Particles do not match particle count.");
+//          attributes = line.split(" ");
+//          attributes = removeSpaces(attributes);
+//          setParticleProperties(particles, attributes, false);
+//          // ADD PARTICLE
+//      }
+    	return particles;
+	}
+
+	private static String[] removeSpaces(final String[] array) {
         List<String> list = new ArrayList<>(Arrays.asList(array));
         List<String> filteredList = list.stream().filter(s -> !s.equals("") && !s.equals(" ")).collect(Collectors.toList());
         String[] newArray = new String[filteredList.size()];
         return filteredList.toArray(newArray);
     }
 
-    private static void setParticleProperties(final List<Particle> particles, final String[] attributes, final boolean isBigParticle) {
+    private static void setParticleProperties(final List<Particle> particles, final String[] attributes) {
         final int propertyCount = 4;
         Double x = null;
         Double y = null;
@@ -131,11 +150,15 @@ public final class Configuration {
                 || (vx = stringToDouble(attributes[2])) == null || (vy = stringToDouble(attributes[3])) == null) {
             failWithMessage(attributes[0] + ", " + attributes[1] + ", " + attributes[2] + ", " + attributes[3] + " are invalid attributes.");
         }
-
-        if(isBigParticle)
-            particles.add(new Particle(BIG_PARTICLE_RADIUS, BIG_PARTICLE_MASS, x, y, vx, vy));
-        else
-            particles.add(new Particle(SMALL_PARTICLE_RADIUS, SMALL_PARTICLE_MASS, x, y, vx, vy));
+        
+        switch(mode) {
+        case OSCILLATOR:
+        	particles.add(new Particle(OSCILLATOR_RADIUS, OSCILLATOR_MASS, x, y, vx, vy));
+        	break;
+        case LENNARD_JONES_GAS:
+        	//particles.add(new Particle(BIG_PARTICLE_RADIUS, BIG_PARTICLE_MASS, x, y, vx, vy));
+        	break;
+        }
     }
 
     private static Integer stringToInt(final String s) {
@@ -164,56 +187,58 @@ public final class Configuration {
     }
 
     /* Time (0) - Big Particle Properties - Small Particles Properties */
-    private static List<Particle> generateRandomInputFile() {
+    private static void generateInputFile() {
         List<Particle> particles = new ArrayList<>();
         File inputFile = new File(inputFileName);
         inputFile.delete();
         try(FileWriter fw = new FileWriter(inputFile)) {
             inputFile.createNewFile();
             fw.write("0\n");
-
-            particles.add(new Particle(BIG_PARTICLE_RADIUS, new Point2D.Double(BIG_PARTICLE_INIT_POSITION.getX(), BIG_PARTICLE_INIT_POSITION.getY())));
-            fw.write(BIG_PARTICLE_INIT_POSITION.getX() + " " + BIG_PARTICLE_INIT_POSITION.getY()
-                    + " " + BIG_PARTICLE_INIT_VELOCITY + " " + BIG_PARTICLE_INIT_VELOCITY + "\n");
-
-            Random r = new Random();
-            for(int i = 0; i < smallParticleCount; i++) {
-                double randomPositionX = 0;
-                double randomPositionY = 0;
-                boolean isValidPosition = false;
-
-                while(!isValidPosition) {
-                    randomPositionX = (AREA_BORDER_LENGTH - 2 * SMALL_PARTICLE_RADIUS) * r.nextDouble() + SMALL_PARTICLE_RADIUS;
-                    randomPositionY = (AREA_BORDER_LENGTH - 2 * SMALL_PARTICLE_RADIUS) * r.nextDouble() + SMALL_PARTICLE_RADIUS;
-                    isValidPosition = validateParticlePosition(particles, randomPositionX, randomPositionY, SMALL_PARTICLE_RADIUS);
-                }
-
-                double randomVelocity = smallParticleMaxVelocity * r.nextDouble();
-                double angle = 2 * Math.PI * r.nextDouble();
-                double randomVelocityX = Math.cos(angle) * randomVelocity;
-                double randomVelocityY = Math.sin(angle) * randomVelocity;
-
-                particles.add(new Particle(SMALL_PARTICLE_RADIUS, new Point2D.Double(randomPositionX, randomPositionY)));
-                fw.write(randomPositionX + " " + randomPositionY + " " + randomVelocityX + " " + randomVelocityY + "\n");
+            
+            switch(mode) {
+            case OSCILLATOR:
+            	particles.add(new Particle(OSCILLATOR_RADIUS, OSCILLATOR_MASS, OSCILLATOR_INIT_POS, 0, OSCILLATOR_INIT_VEL, 0));
+                fw.write(OSCILLATOR_INIT_POS + " 0.0 " + OSCILLATOR_INIT_VEL + " 0.0\n");
+                break;
+            case LENNARD_JONES_GAS:
+//            	Random r = new Random();
+//                for(int i = 0; i < smallParticleCount; i++) {
+//                    double randomPositionX = 0;
+//                    double randomPositionY = 0;
+//                    boolean isValidPosition = false;
+//
+//                    while(!isValidPosition) {
+//                        randomPositionX = (AREA_BORDER_LENGTH - 2 * SMALL_PARTICLE_RADIUS) * r.nextDouble() + SMALL_PARTICLE_RADIUS;
+//                        randomPositionY = (AREA_BORDER_LENGTH - 2 * SMALL_PARTICLE_RADIUS) * r.nextDouble() + SMALL_PARTICLE_RADIUS;
+//                        isValidPosition = validateParticlePosition(particles, randomPositionX, randomPositionY, SMALL_PARTICLE_RADIUS);
+//                    }
+//
+//                    double randomVelocity = smallParticleMaxVelocity * r.nextDouble();
+//                    double angle = 2 * Math.PI * r.nextDouble();
+//                    double randomVelocityX = Math.cos(angle) * randomVelocity;
+//                    double randomVelocityY = Math.sin(angle) * randomVelocity;
+//
+//                    particles.add(new Particle(SMALL_PARTICLE_RADIUS, new Point2D.Double(randomPositionX, randomPositionY)));
+//                    fw.write(randomPositionX + " " + randomPositionY + " " + randomVelocityX + " " + randomVelocityY + "\n");
+//                }
+            	break;
             }
         } catch (IOException e) {
             System.err.println("Failed to create dynamic input file.");
             e.printStackTrace();
         }
-
-        return particles;
     }
 
-    private static boolean validateParticlePosition(final List<Particle> particles, final double randomPositionX, final double randomPositionY, final double radius) {
-        if(particles.isEmpty())
-            return true;
-        for(Particle p : particles) {
-            if(Math.sqrt(Math.pow(p.getPosition().getX() - randomPositionX, 2) + Math.pow(p.getPosition().getY() - randomPositionY, 2))
-                    < (p.getRadius() + radius))
-                return false;
-        }
-        return true;
-    }
+//    private static boolean validateParticlePosition(final List<Particle> particles, final double randomPositionX, final double randomPositionY, final double radius) {
+//        if(particles.isEmpty())
+//            return true;
+//        for(Particle p : particles) {
+//            if(Math.sqrt(Math.pow(p.getPosition().getX() - randomPositionX, 2) + Math.pow(p.getPosition().getY() - randomPositionY, 2))
+//                    < (p.getRadius() + radius))
+//                return false;
+//        }
+//        return true;
+//    }
 
     private static void generateOvitoOutputFile() {
         File outputFile = new File("./ovito_output.xyz");
@@ -226,44 +251,12 @@ public final class Configuration {
         }
     }
 
-    public static double writeOvitoOutputFile(final double accumulatedTime, double deltaTime, double nextFrameTime, final List<Particle> particles) {
-        File outputFile = new File("ovito_output.xyz");
-
-        while(Double.compare(nextFrameTime, accumulatedTime) <= 0) {
-            try(FileWriter fw = new FileWriter(outputFile, true)) {
-                fw.write((smallParticleCount + 1) + "\n");
-                fw.write("Lattice=\"" + AREA_BORDER_LENGTH * 2 + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH * 2 + " 0.0 0.0 0.0 "
-                        + AREA_BORDER_LENGTH * 2 + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + nextFrameTime + "\n");
-                for(Particle p : particles) {
-                    writeOvitoParticle(fw, p, deltaTime);
-                }
-            } catch (IOException e) {
-                System.err.println("Failed to write Ovito output file.");
-                e.printStackTrace();
-            }
-            nextFrameTime += FIXED_INTERVAL;
-            deltaTime += FIXED_INTERVAL;
-        }
-        return nextFrameTime;
-    }
-
-    private static void writeOvitoParticle(final FileWriter fw, final Particle particle, final double deltaTime)
-            throws IOException {
-        Point2D.Double newPosition = new Point2D.Double(
-                particle.getPosition().getX() + particle.getVelocity().getX() * deltaTime,
-                particle.getPosition().getY() + particle.getVelocity().getY() * deltaTime);
-
-        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + newPosition.getX() + " "
-                + newPosition.getY() + " " + particle.getVelocity().getX() + " " + particle.getVelocity().getY());
-        fw.write('\n');
-    }
-
     public static void writeOvitoOutputFile(final Double time, final List<Particle> particles) {
         File outputFile = new File("ovito_output.xyz");
         try(FileWriter fw = new FileWriter(outputFile, true)) {
-            fw.write((smallParticleCount + 1) + "\n");
-            fw.write("Lattice=\"" + AREA_BORDER_LENGTH * 2 + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH * 2 + " 0.0 0.0 0.0 "
-                    + AREA_BORDER_LENGTH * 2 + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
+            fw.write(particleCount + "\n");
+            fw.write("Lattice=\"" + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 "
+                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
             for(Particle p : particles) {
                 writeOvitoParticle(fw, p);
             }
@@ -279,8 +272,12 @@ public final class Configuration {
         fw.write('\n');
     }
 
-    public static int getSmallParticleCount() {
-        return smallParticleCount;
+    public static int getParticleCount() {
+        return particleCount;
+    }
+    
+    public static double getTimeStep() {
+        return timeStep;
     }
 
     public static int getTimeLimit() {

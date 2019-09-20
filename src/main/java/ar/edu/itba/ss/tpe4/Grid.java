@@ -7,29 +7,28 @@ public final class Grid {
 
     private final List<Particle> particles;
     private final double areaBorderLength;
-    private static final double BOLTZMANN_CONSTANT = 1.38064852E-23;
 
     public Grid(final List<Particle> particles) {
         this.areaBorderLength = Configuration.AREA_BORDER_LENGTH;
         this.particles = particles;
     }
 
-    public void updateParticles(final double deltaTime) {
+    /*public void updateParticles(final double deltaTime) {
         for(Particle p : particles) {
             double newPositionX = p.getPosition().getX() + p.getVelocity().getX() * deltaTime;
             double newPositionY = p.getPosition().getY() + p.getVelocity().getY() * deltaTime;
             p.setPosition(newPositionX, newPositionY);
         }
-    }
+    }*/
 
-    public double getDensity() {
-        return particles.size() / Math.pow(areaBorderLength, 2);
-    }
-    
-    public double getTemperature() {
-    	return 1 / (double) particles.size() * particles.stream().mapToDouble(p -> p.getMass() * Math.pow(p.getVelocityModule(), 2)).sum()
-    			/ (2 * BOLTZMANN_CONSTANT);
-    }
+//    public double getDensity() {
+//        return particles.size() / Math.pow(areaBorderLength, 2);
+//    }
+//    
+//    public double getTemperature() {
+//    	return 1 / (double) particles.size() * particles.stream().mapToDouble(p -> p.getMass() * Math.pow(p.getVelocityModule(), 2)).sum()
+//    			/ (2 * BOLTZMANN_CONSTANT);
+//    }
 
     public List<Particle> getParticles() {
         return Collections.unmodifiableList(particles);

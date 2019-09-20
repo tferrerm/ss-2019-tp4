@@ -13,19 +13,20 @@ public final class Main {
 
     public static void main(String[] args) {
     	if(Configuration.requestMode() == Mode.OSCILLATOR) {
-    		executeSingleRun();
+    		executeOscillatorRun();
     	} else {
-    		
+    		//
     	}
         long endTime = System.nanoTime();
         System.out.println("Process done in " + TimeUnit.NANOSECONDS.toMillis(endTime - startTime) + " ms.");
     }
 
-    private static void executeSingleRun() {
+    private static void executeOscillatorRun() {
         Configuration.requestParameters();
         startTime = System.nanoTime();
         List<Particle> particles = Configuration.generateRandomInputFilesAndParseConfiguration();
         Grid grid = new Grid(particles);
+        OscillatorManager om = new OscillatorManager(grid);
         //CollisionManager cm = new CollisionManager(grid);
         //cm.executeAlgorithm();
     }
