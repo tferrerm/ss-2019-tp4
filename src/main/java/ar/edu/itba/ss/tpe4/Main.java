@@ -12,7 +12,11 @@ public final class Main {
     }
 
     public static void main(String[] args) {
-        executeSingleRun();
+    	if(Configuration.requestMode() == Mode.OSCILLATOR) {
+    		executeSingleRun();
+    	} else {
+    		
+    	}
         long endTime = System.nanoTime();
         System.out.println("Process done in " + TimeUnit.NANOSECONDS.toMillis(endTime - startTime) + " ms.");
     }
@@ -22,9 +26,8 @@ public final class Main {
         startTime = System.nanoTime();
         List<Particle> particles = Configuration.generateRandomInputFilesAndParseConfiguration();
         Grid grid = new Grid(particles);
-        CollisionManager cm = new CollisionManager(grid);
-        cm.executeAlgorithm();
-        System.out.println("Temperature: " + grid.getTemperature());
+        //CollisionManager cm = new CollisionManager(grid);
+        //cm.executeAlgorithm();
     }
 
 }

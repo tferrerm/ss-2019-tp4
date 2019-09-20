@@ -15,32 +15,53 @@ import java.util.stream.Collectors;
 
 public final class Configuration {
     private static String inputFileName = "config.txt";
-    private static Integer smallParticleCount;
+    private static Mode mode;
+    private static Integrator integrator;
+    private static int particleCount;
+    private static double timeStep; 
     private static int timeLimit;
-    public static final int TEST_CYCLES = 20;
-    public static final double AREA_BORDER_LENGTH = 0.5;
-    private static final double SMALL_PARTICLE_RADIUS = 0.005;
-    private static final double SMALL_PARTICLE_MASS = 0.1;
-    private static final double BIG_PARTICLE_RADIUS = 0.05;
-    private static final double BIG_PARTICLE_MASS = 100;
-    private static double smallParticleMaxVelocity = 0.1;
-    private static final double BIG_PARTICLE_INIT_VELOCITY = 0;
-    private static final Point2D.Double BIG_PARTICLE_INIT_POSITION = new Point2D.Double(AREA_BORDER_LENGTH / 2, AREA_BORDER_LENGTH / 2);
-    public static final double FIXED_INTERVAL = 0.5;
+    
+    private static final int OSCILLATOR_PARTICLE_COUNT = 1;
+    private static final int GAS_PARTICLE_COUNT = 300;
 
     private Configuration() {
 
     }
+    
+    public static Mode requestMode() {
+    	@SuppressWarnings("resource")
+		Scanner scanner = new Scanner(System.in);
+    	
+    	System.out.println("Enter Mode [0 -> Oscillator; 1 -> Lennard-Jones Gas]: ");
+        Integer selectedMode = null;
+        while (selectedMode == null || selectedMode < 0 || selectedMode > 1) {
+        	selectedMode = stringToInt(scanner.nextLine());
+        }
+        mode = Mode.valueOf(selectedMode).get();
+        
+        if(mode == Mode.OSCILLATOR)
+        	particleCount = OSCILLATOR_PARTICLE_COUNT;
+        else
+        	particleCount = GAS_PARTICLE_COUNT;
+        return mode;
+    }
 
     public static void requestParameters() {
         Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Enter Small Particle Count:");
-        Integer selectedParticleCount = null;
-        while (selectedParticleCount == null) {
-            selectedParticleCount = stringToInt(scanner.nextLine());
+        
+        System.out.println("Enter Integrator [0 -> Verlet; 1 -> Gear Predictor-Corrector; 2 -> Beeman]: ");
+        Integer selectedIntegrator = null;
+        while (selectedIntegrator == null || selectedIntegrator < 0 || selectedIntegrator > 2) {
+        	selectedIntegrator = stringToInt(scanner.nextLine());
         }
-        smallParticleCount = selectedParticleCount;
+        integrator = Integrator.valueOf(selectedIntegrator).get();
+        
+        System.out.println("Enter Time Step:");
+        Double selectedTimeStep = null;
+        while(selectedTimeStep == null || selectedTimeStep <= 0) {
+        	selectedTimeStep = stringToDouble(scanner.nextLine());
+        }
+        timeStep = selectedTimeStep;
 
         System.out.println("Enter Time Limit:");
         Integer selectedTimeLimit = null;
@@ -48,14 +69,6 @@ public final class Configuration {
             selectedTimeLimit = stringToInt(scanner.nextLine());
         }
         timeLimit = selectedTimeLimit;
-        
-        System.out.println("Enter Small Particle Maximum Velocity [0 -> Default]:");
-        Double selectedMaxVelocity = null;
-        while(selectedMaxVelocity == null || selectedMaxVelocity < 0) {
-        	selectedMaxVelocity = stringToDouble(scanner.nextLine());
-        }
-        if(selectedMaxVelocity > 0)
-        	smallParticleMaxVelocity = selectedMaxVelocity;
 
         scanner.close();
     }
@@ -272,6 +285,10 @@ public final class Configuration {
 
     public static int getTimeLimit() {
         return timeLimit;
+    }
+    
+    public static Mode getMode() {
+    	return mode;
     }
 
 }
