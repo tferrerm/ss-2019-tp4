@@ -21,6 +21,7 @@ public class OscillatorManager {
 			case GEAR_PREDICTOR_CORRECTOR:
 				break;
 			case BEEMAN:
+				grid.beemanUpdate();
 				break;
 			}
 		}

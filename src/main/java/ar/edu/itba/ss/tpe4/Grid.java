@@ -8,14 +8,16 @@ public final class Grid {
 	
 	private List<Particle> prevParticles = new ArrayList<>();
 	private List<Particle> currParticles;
-    private List<Particle> nextParticles = new ArrayList<>();
+    //private List<Particle> nextParticles = new ArrayList<>();
     private final double areaBorderLength;
+    private final double timeStep;
 
     public Grid(final List<Particle> currParticles) {
         this.areaBorderLength = Configuration.AREA_BORDER_LENGTH;
         this.currParticles = currParticles;
         initPrevParticles();
         //initNextParticles();
+        this.timeStep = Configuration.getTimeStep();
     }
 
     /*public void updateParticles(final double deltaTime) {
@@ -40,19 +42,19 @@ public final class Grid {
 		for(Particle p : currParticles) {
 			Particle prevParticle = p.clone();
 			double prevPosition = p.getPosition().getX() - Configuration.getTimeStep() * p.getVelocity().getX()
-					+ Math.pow(Configuration.getTimeStep(), 2) * getCurrentParticleForce(p) / (2 * p.getMass()); // + error
+					+ Math.pow(Configuration.getTimeStep(), 2) * getParticleForce(p) / (2 * p.getMass()); // + error
+			double prevVelocity = p.getVelocity().getX() - (timeStep / p.getMass()) * getParticleForce(p);// + error
 			prevParticle.setPosition(prevPosition, 0);
+			prevParticle.setVelocity(prevVelocity, 0);
 			prevParticles.add(prevParticle);
-			System.out.println(Configuration.getTimeStep() * p.getVelocity().getX() + " " + 
-					Math.pow(Configuration.getTimeStep(), 2) * getCurrentParticleForce(p) / (2 * p.getMass()));
 		}
 	}
     
-    private void initNextParticles() {
-    	for(Particle p : currParticles) {
-    		nextParticles.add(p.clone());
-    	}
-    }
+//    private void initNextParticles() {
+//    	for(Particle p : currParticles) {
+//    		nextParticles.add(p.clone());
+//    	}
+//    }
     
     public void verletUpdate() {
 		for(int i = 0; i < currParticles.size(); i++) {
@@ -60,22 +62,46 @@ public final class Grid {
 			Particle prevParticle = prevParticles.get(i);
 			
 			double newPositionX = 2 * currParticle.getPosition().getX() - prevParticle.getPosition().getX()
-					+ Math.pow(Configuration.getTimeStep(), 2) * getCurrentParticleForce(currParticle) / currParticle.getMass(); //+error
+					+ Math.pow(Configuration.getTimeStep(), 2) * getParticleForce(currParticle) / currParticle.getMass(); //+error
 			
 			double newVelocityX = (newPositionX - prevParticle.getPosition().getX()) / (2 * Configuration.getTimeStep()); // + error
 			
 			prevParticle.setPosition(currParticle.getPosition().getX(), 0);
+			prevParticle.setVelocity(currParticle.getVelocity().getX(), 0);
 			currParticle.setPosition(newPositionX, 0);
 			currParticle.setVelocity(newVelocityX, 0);
-			System.out.println("PREV: " + currParticle.getPosition().getX() + "; NEW: " + newPositionX);
-			
-			//nextParticles.get(i).setPosition(newPositionX, 0);
-			// SACAR NEXT PARTICLES?
-			
 		}
 	}
     
-    private double getCurrentParticleForce(final Particle p) {
+    public void beemanUpdate() {
+    	for(int i = 0; i < currParticles.size(); i++) {
+			Particle currParticle = currParticles.get(i);
+			Particle prevParticle = prevParticles.get(i);
+			
+			double newPositionX = currParticle.getPosition().getX() + currParticle.getVelocity().getX() * timeStep
+					+ (2 / 3) * (getParticleForce(currParticle) / currParticle.getMass()) * Math.pow(timeStep, 2)
+					- (1 / 6) * (getParticleForce(prevParticle) / prevParticle.getMass()) * Math.pow(timeStep, 2); //+error?
+			
+			double predictedVelocityX = currParticle.getVelocity().getX() 
+					+ (3 / 2) * (getParticleForce(currParticle) / currParticle.getMass()) * timeStep
+					- (1 / 2) * (getParticleForce(prevParticle) / prevParticle.getMass()) * timeStep; // + error
+			Particle predictedParticle = currParticle.clone();
+			predictedParticle.setPosition(newPositionX, 0);
+			predictedParticle.setVelocity(predictedVelocityX, 0);
+			
+			double newAccelerationX = getParticleForce(predictedParticle) / predictedParticle.getMass();
+			double correctedVelocityX = currParticle.getVelocity().getX()
+					+ (1 / 3) * newAccelerationX * timeStep + (5 / 6) * (getParticleForce(currParticle) / currParticle.getMass()) * timeStep
+					- (1 / 6) * (getParticleForce(prevParticle) / prevParticle.getMass()) * timeStep;
+			
+			prevParticle.setPosition(currParticle.getPosition().getX(), 0);
+			prevParticle.setVelocity(currParticle.getVelocity().getX(), 0);
+			currParticle.setPosition(newPositionX, 0);
+			currParticle.setVelocity(correctedVelocityX, 0);
+		}
+	}
+    
+    private double getParticleForce(final Particle p) {
     	if(Configuration.isOscillatorMode()) {
 			return - Configuration.OSCILLATOR_K * p.getPosition().getX() - Configuration.OSCILLATOR_GAMMA * p.getVelocity().getX();
 		} else {
@@ -92,9 +118,9 @@ public final class Grid {
         return Collections.unmodifiableList(prevParticles);
     }
     
-    public List<Particle> getNextParticles() {
-        return Collections.unmodifiableList(nextParticles);
-    }
+//    public List<Particle> getNextParticles() {
+//        return Collections.unmodifiableList(nextParticles);
+//    }
 
     public double getAreaBorderLength() {
         return areaBorderLength;
