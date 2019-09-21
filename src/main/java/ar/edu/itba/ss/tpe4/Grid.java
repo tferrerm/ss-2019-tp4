@@ -79,20 +79,20 @@ public final class Grid {
 			Particle prevParticle = prevParticles.get(i);
 			
 			double newPositionX = currParticle.getPosition().getX() + currParticle.getVelocity().getX() * timeStep
-					+ (2 / 3) * (getParticleForce(currParticle) / currParticle.getMass()) * Math.pow(timeStep, 2)
-					- (1 / 6) * (getParticleForce(prevParticle) / prevParticle.getMass()) * Math.pow(timeStep, 2); //+error?
+					+ (2 / (double) 3) * (getParticleForce(currParticle) / currParticle.getMass()) * Math.pow(timeStep, 2)
+					- (1 / (double) 6) * (getParticleForce(prevParticle) / prevParticle.getMass()) * Math.pow(timeStep, 2); //+error?
 			
 			double predictedVelocityX = currParticle.getVelocity().getX() 
-					+ (3 / 2) * (getParticleForce(currParticle) / currParticle.getMass()) * timeStep
-					- (1 / 2) * (getParticleForce(prevParticle) / prevParticle.getMass()) * timeStep; // + error
+					+ (3 / (double) 2) * (getParticleForce(currParticle) / currParticle.getMass()) * timeStep
+					- (1 / (double) 2) * (getParticleForce(prevParticle) / prevParticle.getMass()) * timeStep; // + error
 			Particle predictedParticle = currParticle.clone();
 			predictedParticle.setPosition(newPositionX, 0);
 			predictedParticle.setVelocity(predictedVelocityX, 0);
 			
 			double newAccelerationX = getParticleForce(predictedParticle) / predictedParticle.getMass();
 			double correctedVelocityX = currParticle.getVelocity().getX()
-					+ (1 / 3) * newAccelerationX * timeStep + (5 / 6) * (getParticleForce(currParticle) / currParticle.getMass()) * timeStep
-					- (1 / 6) * (getParticleForce(prevParticle) / prevParticle.getMass()) * timeStep;
+					+ (1 / (double) 3) * newAccelerationX * timeStep + (5 / (double) 6) * (getParticleForce(currParticle) / currParticle.getMass()) * timeStep
+					- (1 / (double) 6) * (getParticleForce(prevParticle) / prevParticle.getMass()) * timeStep;
 			
 			prevParticle.setPosition(currParticle.getPosition().getX(), 0);
 			prevParticle.setVelocity(currParticle.getVelocity().getX(), 0);
@@ -105,7 +105,6 @@ public final class Grid {
     	if(Configuration.isOscillatorMode()) {
 			return - Configuration.OSCILLATOR_K * p.getPosition().getX() - Configuration.OSCILLATOR_GAMMA * p.getVelocity().getX();
 		} else {
-			//
 			return 0;
 		}
     }
