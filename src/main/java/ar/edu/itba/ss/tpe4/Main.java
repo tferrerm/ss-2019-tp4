@@ -27,8 +27,7 @@ public final class Main {
         List<Particle> particles = Configuration.generateRandomInputFilesAndParseConfiguration();
         Grid grid = new Grid(particles);
         OscillatorManager om = new OscillatorManager(grid);
-        //CollisionManager cm = new CollisionManager(grid);
-        //cm.executeAlgorithm();
+        om.execute();
     }
 
 }

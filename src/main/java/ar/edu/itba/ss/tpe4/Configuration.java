@@ -20,16 +20,17 @@ public final class Configuration {
     private static double timeStep; 
     private static int timeLimit;
     
-    public static final int AREA_BORDER_LENGTH = 2;
+    public static final int AREA_BORDER_LENGTH = 1;
     private static final int OSCILLATOR_PARTICLE_COUNT = 1;
     private static final double OSCILLATOR_RADIUS = 0;
     private static final double OSCILLATOR_MASS = 70; // kg
-    private static final double OSCILLATOR_K = 10e4; // N/m
-    private static final double OSCILLATOR_GAMMA = 100; // kg/s
-    private static final double OSCILLATOR_A = 1; // HACER
+    public static final double OSCILLATOR_K = 10e4; // N/m
+    public static final double OSCILLATOR_GAMMA = 100; // kg/s
+    private static final double OSCILLATOR_A = 0.1; // HACER
     private static final double OSCILLATOR_INIT_POS = 1; // m
     private static final double OSCILLATOR_INIT_VEL = - OSCILLATOR_A * OSCILLATOR_GAMMA / (2 * OSCILLATOR_MASS); // m/s
     private static final int GAS_PARTICLE_COUNT = 300;
+    private static final int OSCILLATOR_SHIFTING = 1;
 
     private Configuration() {
 
@@ -267,8 +268,9 @@ public final class Configuration {
     }
 
     private static void writeOvitoParticle(final FileWriter fw, final Particle particle) throws IOException {
-        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + particle.getPosition().getX() + " "
-                + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " + particle.getVelocity().getY());
+        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + (particle.getPosition().getX() 
+        		+ OSCILLATOR_SHIFTING) + " " + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " 
+        		+ particle.getVelocity().getY());
         fw.write('\n');
     }
 
@@ -284,8 +286,12 @@ public final class Configuration {
         return timeLimit;
     }
     
-    public static Mode getMode() {
-    	return mode;
+    public static boolean isOscillatorMode() {
+    	return mode == Mode.OSCILLATOR;
+    }
+    
+    public static Integrator getIntegrator() {
+    	return integrator;
     }
 
 }
