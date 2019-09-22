@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.awt.geom.Point2D;
 
 public final class Configuration {
     private static String inputFileName = "config.txt";
@@ -29,8 +31,22 @@ public final class Configuration {
     private static final double OSCILLATOR_A = 0.1; // HACER
     private static final double OSCILLATOR_INIT_POS = 1; // m
     private static final double OSCILLATOR_INIT_VEL = - OSCILLATOR_A * OSCILLATOR_GAMMA / (2 * OSCILLATOR_MASS); // m/s
-    private static final int GAS_PARTICLE_COUNT = 300;
     private static final int OSCILLATOR_SHIFTING = 1;
+    
+    private static final int GAS_PARTICLE_COUNT = 300;
+    private static final double GAS_PARTICLE_RADIUS = 0.005;
+    public static final double GAS_EPSILON = 2; // adimensional
+    public static final double GAS_Rm = 1; // adimensional
+    public static final double GAS_L = 12; // adimensional
+    public static final double GAS_J = 6; // adimensional
+    private static double GAS_PARTICLE_MAX_INITIAL_VELOCITY = 0.1;
+    private static final double GAS_M = 0.1; // adimensional
+    private static final double GAS_INITIAL_V = 10; // m/s
+    private static final double GAS_R = 5; // m
+    private static final double GAS_BOX_HEIGHT = 200; // m
+    private static final double GAS_BOX_WIDTH = 400; // m
+    private static final double GAS_BOX_HOLE = 50; // m
+    private static final double GAS_BOX_SPLIT = 200; // m
 
     private Configuration() {
 
@@ -202,26 +218,26 @@ public final class Configuration {
                 fw.write(OSCILLATOR_INIT_POS + " 0.0 " + OSCILLATOR_INIT_VEL + " 0.0\n");
                 break;
             case LENNARD_JONES_GAS:
-//            	Random r = new Random();
-//                for(int i = 0; i < smallParticleCount; i++) {
-//                    double randomPositionX = 0;
-//                    double randomPositionY = 0;
-//                    boolean isValidPosition = false;
-//
-//                    while(!isValidPosition) {
-//                        randomPositionX = (AREA_BORDER_LENGTH - 2 * SMALL_PARTICLE_RADIUS) * r.nextDouble() + SMALL_PARTICLE_RADIUS;
-//                        randomPositionY = (AREA_BORDER_LENGTH - 2 * SMALL_PARTICLE_RADIUS) * r.nextDouble() + SMALL_PARTICLE_RADIUS;
-//                        isValidPosition = validateParticlePosition(particles, randomPositionX, randomPositionY, SMALL_PARTICLE_RADIUS);
-//                    }
-//
-//                    double randomVelocity = smallParticleMaxVelocity * r.nextDouble();
-//                    double angle = 2 * Math.PI * r.nextDouble();
-//                    double randomVelocityX = Math.cos(angle) * randomVelocity;
-//                    double randomVelocityY = Math.sin(angle) * randomVelocity;
-//
-//                    particles.add(new Particle(SMALL_PARTICLE_RADIUS, new Point2D.Double(randomPositionX, randomPositionY)));
-//                    fw.write(randomPositionX + " " + randomPositionY + " " + randomVelocityX + " " + randomVelocityY + "\n");
-//                }
+                Random r = new Random();
+                for(int i = 0; i < GAS_PARTICLE_COUNT; i++) {
+                    double randomPositionX = 0;
+                    double randomPositionY = 0;
+                    boolean isValidPosition = false;
+
+                    while(!isValidPosition) {
+                        randomPositionX = (AREA_BORDER_LENGTH - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
+                        randomPositionY = (AREA_BORDER_LENGTH - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
+                        isValidPosition = validateParticlePosition(particles, randomPositionX, randomPositionY, GAS_PARTICLE_RADIUS);
+                    }
+
+                    double randomVelocity = GAS_PARTICLE_MAX_INITIAL_VELOCITY * r.nextDouble();
+                    double angle = 2 * Math.PI * r.nextDouble();
+                    double randomVelocityX = Math.cos(angle) * randomVelocity;
+                    double randomVelocityY = Math.sin(angle) * randomVelocity;
+
+                    particles.add(new Particle(GAS_PARTICLE_RADIUS, new Point2D.Double(randomPositionX, randomPositionY)));
+                    fw.write(randomPositionX + " " + randomPositionY + " " + randomVelocityX + " " + randomVelocityY + "\n");
+                }
             	break;
             }
         } catch (IOException e) {
@@ -230,16 +246,16 @@ public final class Configuration {
         }
     }
 
-//    private static boolean validateParticlePosition(final List<Particle> particles, final double randomPositionX, final double randomPositionY, final double radius) {
-//        if(particles.isEmpty())
-//            return true;
-//        for(Particle p : particles) {
-//            if(Math.sqrt(Math.pow(p.getPosition().getX() - randomPositionX, 2) + Math.pow(p.getPosition().getY() - randomPositionY, 2))
-//                    < (p.getRadius() + radius))
-//                return false;
-//        }
-//        return true;
-//    }
+   private static boolean validateParticlePosition(final List<Particle> particles, final double randomPositionX, final double randomPositionY, final double radius) {
+       if(particles.isEmpty())
+           return true;
+       for(Particle p : particles) {
+           if(Math.sqrt(Math.pow(p.getPosition().getX() - randomPositionX, 2) + Math.pow(p.getPosition().getY() - randomPositionY, 2))
+                   < (p.getRadius() + radius))
+               return false;
+       }
+       return true;
+   }
 
     private static void generateOvitoOutputFile() {
         File outputFile = new File("./ovito_output.xyz");
