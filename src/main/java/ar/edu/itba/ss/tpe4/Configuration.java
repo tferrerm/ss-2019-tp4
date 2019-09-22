@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-import java.awt.geom.Point2D;
 
 public final class Configuration {
     private static String inputFileName = "config.txt";
@@ -40,8 +39,8 @@ public final class Configuration {
     public static final double GAS_L = 12; // adimensional
     public static final double GAS_J = 6; // adimensional
     private static double GAS_PARTICLE_MAX_INITIAL_VELOCITY = 0.1;
-    private static final double GAS_M = 0.1; // adimensional
-    private static final double GAS_INITIAL_V = 10; // m/s
+    private static final double GAS_PARTICLE_MASS = 0.1; // adimensional
+    private static final double GAS_INITIAL_VELOCITY = 10; // m/s
     private static final double GAS_R = 5; // m
     private static final double GAS_BOX_HEIGHT = 200; // m
     private static final double GAS_BOX_WIDTH = 400; // m
@@ -114,7 +113,7 @@ public final class Configuration {
             case OSCILLATOR:
             	return parseOscillatorConfig(br);
 			case LENNARD_JONES_GAS:
-            	return parseGasConfig();
+            	return parseGasConfig(br);
             default:
             	throw new IllegalStateException();
             }
@@ -136,17 +135,16 @@ public final class Configuration {
         return particles;
 	}
 	
-    private static List<Particle> parseGasConfig() throws IOException {
+    private static List<Particle> parseGasConfig(final BufferedReader br) throws IOException {
     	List<Particle> particles = new ArrayList<>();
-//      for(int i = 0; i < smallParticleCount; i++) {
-//          line = br.readLine();
-//          if(line == null)
-//              failWithMessage("Particles do not match particle count.");
-//          attributes = line.split(" ");
-//          attributes = removeSpaces(attributes);
-//          setParticleProperties(particles, attributes, false);
-//          // ADD PARTICLE
-//      }
+        for(int i = 0; i < GAS_PARTICLE_COUNT; i++) {
+            String line = br.readLine();
+            if(line == null)
+                failWithMessage("Particles do not match particle count.");
+            String[] attributes = line.split(" ");
+            attributes = removeSpaces(attributes);
+            setParticleProperties(particles, attributes);
+        }
     	return particles;
 	}
 
@@ -173,7 +171,7 @@ public final class Configuration {
         	particles.add(new Particle(OSCILLATOR_RADIUS, OSCILLATOR_MASS, x, y, vx, vy));
         	break;
         case LENNARD_JONES_GAS:
-        	//particles.add(new Particle(BIG_PARTICLE_RADIUS, BIG_PARTICLE_MASS, x, y, vx, vy));
+        	particles.add(new Particle(GAS_PARTICLE_RADIUS, GAS_PARTICLE_MASS, x, y, vx, vy));
         	break;
         }
     }
@@ -225,8 +223,8 @@ public final class Configuration {
                     boolean isValidPosition = false;
 
                     while(!isValidPosition) {
-                        randomPositionX = (AREA_BORDER_LENGTH - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
-                        randomPositionY = (AREA_BORDER_LENGTH - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
+                        randomPositionX = (GAS_BOX_WIDTH - GAS_BOX_SPLIT - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
+                        randomPositionY = (GAS_BOX_HEIGHT - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
                         isValidPosition = validateParticlePosition(particles, randomPositionX, randomPositionY, GAS_PARTICLE_RADIUS);
                     }
 
@@ -235,10 +233,10 @@ public final class Configuration {
                     double randomVelocityX = Math.cos(angle) * randomVelocity;
                     double randomVelocityY = Math.sin(angle) * randomVelocity;
 
-                    particles.add(new Particle(GAS_PARTICLE_RADIUS, new Point2D.Double(randomPositionX, randomPositionY)));
+                    particles.add(new Particle(GAS_PARTICLE_RADIUS, GAS_PARTICLE_MASS, randomPositionX, randomPositionY, randomVelocityX, randomVelocityY));
                     fw.write(randomPositionX + " " + randomPositionY + " " + randomVelocityX + " " + randomVelocityY + "\n");
                 }
-            	break;
+                break;
             }
         } catch (IOException e) {
             System.err.println("Failed to create dynamic input file.");
