@@ -13,7 +13,7 @@ public class LennardJonesGasManager {
 	}
 
 	private Boolean isBalanced() {
-		List<Particle> particles = grid.getCurrentParticles();
+		List<Particle> particles = grid.getParticles();
 		Integer initialChamberAmount = 0;
 		for (Particle particle: particles) {
 			if (particle.getPosition().x < (Configuration.GAS_BOX_WIDTH - Configuration.GAS_BOX_SPLIT)) {
@@ -44,23 +44,23 @@ public class LennardJonesGasManager {
 
 		if (Configuration.getTimeLimit() == -1)
 		while(Double.compare(accumulatedTime, getTimeLimit()) <= 0) {
-			Configuration.writeOvitoOutputFile(accumulatedTime, grid.getCurrentParticles());
+			Configuration.writeOvitoOutputFile(accumulatedTime, grid.getParticles());
 
 			if (balanceTime == 0 && isBalanced()) {
 				balanceTime = accumulatedTime;
 			}
 			
 			accumulatedTime += Configuration.getTimeStep();
-			switch(Configuration.getIntegrator()) {
-			case VERLET:
-				grid.verletUpdate();
-				break;
-			case GEAR_PREDICTOR_CORRECTOR:
-				break;
-			case BEEMAN:
-				grid.beemanUpdate();
-				break;
-			}
+			// switch(Configuration.getIntegrator()) {
+			// case VERLET:
+			// 	grid.verletUpdate();
+			// 	break;
+			// case GEAR_PREDICTOR_CORRECTOR:
+			// 	break;
+			// case BEEMAN:
+			// 	grid.beemanUpdate();
+			// 	break;
+			// }
 		}
 	}
 
