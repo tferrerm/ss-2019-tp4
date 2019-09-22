@@ -43,9 +43,9 @@ public final class Configuration {
     private static final double GAS_INITIAL_VELOCITY = 10; // m/s
     private static final double GAS_R = 5; // m
     private static final double GAS_BOX_HEIGHT = 200; // m
-    private static final double GAS_BOX_WIDTH = 400; // m
+    public static final double GAS_BOX_WIDTH = 400; // m
     private static final double GAS_BOX_HOLE = 50; // m
-    private static final double GAS_BOX_SPLIT = 200; // m
+    public static final double GAS_BOX_SPLIT = 200; // m
 
     private Configuration() {
 
@@ -79,7 +79,7 @@ public final class Configuration {
         }
         integrator = Integrator.valueOf(selectedIntegrator).get();
         
-        System.out.println("Enter Time Step:");
+        System.out.println("Enter Time Step [-1 -> Balance time; -2 -> 2 * Balance Time]:");
         Double selectedTimeStep = null;
         while(selectedTimeStep == null || selectedTimeStep <= 0) {
         	selectedTimeStep = stringToDouble(scanner.nextLine());
@@ -222,6 +222,7 @@ public final class Configuration {
                     double randomPositionY = 0;
                     boolean isValidPosition = false;
 
+                    // TODO: Add Particles on hole borders
                     while(!isValidPosition) {
                         randomPositionX = (GAS_BOX_WIDTH - GAS_BOX_SPLIT - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
                         randomPositionY = (GAS_BOX_HEIGHT - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
@@ -302,6 +303,10 @@ public final class Configuration {
     
     public static boolean isOscillatorMode() {
     	return mode == Mode.OSCILLATOR;
+    }
+
+    public static boolean isGasMode() {
+    	return mode == Mode.LENNARD_JONES_GAS;
     }
     
     public static Integrator getIntegrator() {

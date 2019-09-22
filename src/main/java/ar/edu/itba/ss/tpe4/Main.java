@@ -33,8 +33,8 @@ public final class Main {
         startTime = System.nanoTime();
         List<Particle> particles = Configuration.generateRandomInputFilesAndParseConfiguration();
         Grid grid = new Grid(particles);
-        OscillatorManager om = new OscillatorManager(grid);
-        om.execute();
+        LennardJonesGasManager gm = new LennardJonesGasManager(grid);
+        gm.execute();
     }
 
 }
