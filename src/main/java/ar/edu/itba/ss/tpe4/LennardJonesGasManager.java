@@ -23,6 +23,7 @@ public class LennardJonesGasManager {
 	}
 
 	private double getParticleForce(double distance) {
+		// Formula to get the force applied from one particle to another, extracted from the slides
 		double coefficient = Configuration.GAS_L * Configuration.GAS_EPSILON / Configuration.GAS_Rm;
 		double repulsion = Math.pow((Configuration.GAS_Rm / distance), Configuration.GAS_L + 1);
 		double attraction =Math.pow((Configuration.GAS_Rm / distance), Configuration.GAS_J + 1);
@@ -30,17 +31,21 @@ public class LennardJonesGasManager {
 	}
 
 	private Boolean isBalanced() {
+		// returns true only if there are the same amount of particles in both chambers
 		List<Particle> particles = grid.getParticles();
+
 		Integer initialChamberAmount = 0;
 		for (Particle particle: particles) {
 			if (isInFirstChamber(particle)) {
 				initialChamberAmount += 1;
 			}
 		}
-		return initialChamberAmount == particles.size() / 2;
+
+		return Math.floor(initialChamberAmount - particles.size() / 2) == 0;
 	}
 
 	private double getTimeLimit() {
+		// We have to handle different break conditions to allow for balance time exercises
 		double timeLimit = Integer.MAX_VALUE;
 		
 		switch(Configuration.getTimeLimit()) {
@@ -61,6 +66,7 @@ public class LennardJonesGasManager {
 	}
 
 	public void updatePositionByBouncing(List<Particle> particles) {
+		// The particle has to bounce between the different walls
 		for (Particle particle: particles) {
 			Boolean isOutsideTopBound = particle.getPosition().y >= Configuration.GAS_BOX_HEIGHT;
 			Boolean isOutsideBottomBound = particle.getPosition().y <= 0;
@@ -76,9 +82,12 @@ public class LennardJonesGasManager {
 				particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
 			}
 
+			// If the particle is in the area that's affected by the split
 			if (!isWithinHole) {
 				double lastX = this.positionMap.get(particle);
 				Boolean changedChamber = !isInFirstChamber(particle) && lastX < Configuration.GAS_BOX_SPLIT || isInFirstChamber(particle) && lastX > Configuration.GAS_BOX_SPLIT;
+				// Only make it bounce if it CHANGED the chamber, but don't update the position in the position map
+				// so we don't enter an endless loop.
 				if (changedChamber) {
 					particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
 					continue;
@@ -90,20 +99,28 @@ public class LennardJonesGasManager {
 	}
 
 	public double distance(Particle a, Particle b) {
+		// Calculate euclidean distance between a particle a and a particle b in 2D.
 		return Math.sqrt(Math.pow(b.getPosition().x - a.getPosition().x, 2) + Math.pow(b.getPosition().y - a.getPosition().y, 2));
 	}
 
 	public List<Particle> getClosestParticles(Particle particle) {
 		List<Particle> particles = grid.getParticles();
 		// TODO: use cellindex method
+		// Get particles closer to the constant GAS_RANGE and larger than 0 (to avoid taking myself into account)
+		// And only those that are in the same chamber
 		return particles.stream().filter(p -> distance(particle, p) > 0 && distance(particle, p) <= Configuration.GAS_RANGE && isInFirstChamber(particle) == isInFirstChamber(p)).collect(Collectors.toList());
 	}
 
 	private Point2D.Double getAppliedForce (Particle particle) {
+		// First we get the particles that affect our motion (closer to GAS_RANGE distance)
 		List<Particle> closeParticles = getClosestParticles(particle);
 		double totalForceX = 0.0;
 		double totalForceY = 0.0;
 
+		// Then, we iterate over the closest particles, calculate the modulus of the force
+		// then calculate the angle of the force (by using the position beteween the two particles)
+		// then with that angle we calculate the components of the force in X and Y coordinates
+		// and then we add that to the total force (for each component)
 		for (Particle p: closeParticles) {
 			double forceModulus = getParticleForce(distance(p, particle));
 			double forceAngle = Math.atan2(p.getPosition().y - particle.getPosition().y, p.getPosition().x - particle.getPosition().x);
@@ -115,11 +132,15 @@ public class LennardJonesGasManager {
 	}
 
 	private Point2D.Double getAppliedAcceleration (Particle particle) {
+		// Divide each component of the force by the mass, and return that vector.
 		Point2D.Double force = getAppliedForce(particle);
 		return new Point2D.Double(force.x / particle.getMass(), force.y / particle.getMass());
 	}
 
 	public void verletUpdate(List<Particle> previousParticles) {
+		// This is almost a true copy from the collider,
+		// except we calculate a new position and a new velocity
+		// for both X and Y coordinates
 		List<Particle> currentParticles = grid.getParticles(); 
 		
 		for(int i = 0; i < currentParticles.size(); i++) {
@@ -140,25 +161,28 @@ public class LennardJonesGasManager {
 		}
 	}
 
-	    // Euler Algorithm evaluated in (- timeStep)
-		private List<Particle> initPreviousParticles(List<Particle> currentParticles) {
-			List<Particle> previousParticles = new ArrayList<>();
-			for(Particle p : currentParticles) {
-				Particle prevParticle = p.clone();
-				Point2D.Double force = getAppliedForce(p);
-				double prevPositionX = p.getPosition().getX() - Configuration.getTimeStep() * p.getVelocity().getX()
-						+ Math.pow(Configuration.getTimeStep(), 2) * force.x / (2 * p.getMass()); // + error
-				double prevPositionY = p.getPosition().getY() - Configuration.getTimeStep() * p.getVelocity().getY()
-						+ Math.pow(Configuration.getTimeStep(), 2) * force.y / (2 * p.getMass()); // + error
-				double prevVelocityX = p.getVelocity().getX() - (Configuration.getTimeStep() / p.getMass()) * force.x;// + error
-				double prevVelocityY = p.getVelocity().getX() - (Configuration.getTimeStep() / p.getMass()) * force.y;// + error
-				prevParticle.setPosition(prevPositionX, prevPositionY);
-				prevParticle.setVelocity(prevVelocityX, prevVelocityY);
-				previousParticles.add(prevParticle);
-			}
-			
-			return previousParticles;
+	// Euler Algorithm evaluated in (- timeStep)
+	private List<Particle> initPreviousParticles(List<Particle> currentParticles) {
+		// This is almost a true copy from the collider,
+		// except we calculate a previous position and a previous velocity
+		// for both X and Y coordinates
+		List<Particle> previousParticles = new ArrayList<>();
+		for(Particle p : currentParticles) {
+			Particle prevParticle = p.clone();
+			Point2D.Double force = getAppliedForce(p);
+			double prevPositionX = p.getPosition().getX() - Configuration.getTimeStep() * p.getVelocity().getX()
+					+ Math.pow(Configuration.getTimeStep(), 2) * force.x / (2 * p.getMass()); // + error
+			double prevPositionY = p.getPosition().getY() - Configuration.getTimeStep() * p.getVelocity().getY()
+					+ Math.pow(Configuration.getTimeStep(), 2) * force.y / (2 * p.getMass()); // + error
+			double prevVelocityX = p.getVelocity().getX() - (Configuration.getTimeStep() / p.getMass()) * force.x;// + error
+			double prevVelocityY = p.getVelocity().getX() - (Configuration.getTimeStep() / p.getMass()) * force.y;// + error
+			prevParticle.setPosition(prevPositionX, prevPositionY);
+			prevParticle.setVelocity(prevVelocityX, prevVelocityY);
+			previousParticles.add(prevParticle);
 		}
+		
+		return previousParticles;
+	}
 
 	public void execute() {
 		double accumulatedTime = 0.0;
