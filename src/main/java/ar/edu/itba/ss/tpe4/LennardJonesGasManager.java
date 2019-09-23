@@ -1,15 +1,22 @@
 package ar.edu.itba.ss.tpe4;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class LennardJonesGasManager {
 	
 	private final Grid grid;
 	private double balanceTime;
+	private HashMap<Particle, Double> positionMap;
 
 	public LennardJonesGasManager(Grid grid) {
 		this.grid = grid;
 		this.balanceTime = 0;
+		this.positionMap = new HashMap<>();
+
+		for (Particle particle: grid.getParticles()) {
+			this.positionMap.put(particle, particle.getPosition().x);
+		}
 	}
 
 	private Boolean isBalanced() {
@@ -69,7 +76,16 @@ public class LennardJonesGasManager {
 					particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
 				}
 
-				if (isWithinHole) continue;
+				if (!isWithinHole) {
+					double lastX = this.positionMap.get(particle);
+					Boolean changedChamber = !isInFirstChamber(particle) && lastX < Configuration.GAS_BOX_SPLIT || isInFirstChamber(particle) && lastX > Configuration.GAS_BOX_SPLIT;
+					if (changedChamber) {
+						particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
+						continue;
+					} 
+				}
+				
+				this.positionMap.put(particle, particle.getPosition().x);
 			}
 
 			accumulatedTime += Configuration.getTimeStep();
