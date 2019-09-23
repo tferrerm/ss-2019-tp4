@@ -80,14 +80,14 @@ public final class Configuration {
         }
         integrator = Integrator.valueOf(selectedIntegrator).get();
         
-        System.out.println("Enter Time Step [-1 -> Balance time; -2 -> 2 * Balance Time]:");
+        System.out.println("Enter Time Step:");
         Double selectedTimeStep = null;
         while(selectedTimeStep == null || selectedTimeStep <= 0) {
         	selectedTimeStep = stringToDouble(scanner.nextLine());
         }
         timeStep = selectedTimeStep;
 
-        System.out.println("Enter Time Limit:");
+        System.out.println("Enter Time Limit [-1 -> Balance time; -2 -> 2 * Balance Time]:");
         Integer selectedTimeLimit = null;
         while(selectedTimeLimit == null || selectedTimeLimit <= 0) {
             selectedTimeLimit = stringToInt(scanner.nextLine());
@@ -288,6 +288,27 @@ public final class Configuration {
         		+ OSCILLATOR_SHIFTING) + " " + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " 
         		+ particle.getVelocity().getY());
         fw.write('\n');
+    }
+
+    private static void writeGasOvitoParticle(final FileWriter fw, final Particle particle) throws IOException {
+        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + particle.getPosition().getX() + " " + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " 
+        		+ particle.getVelocity().getY());
+        fw.write('\n');
+    }
+
+    public static void writeGasOvitoOutputFile(final Double time, final List<Particle> particles) {
+        File outputFile = new File("ovito_output_gas.xyz");
+        try(FileWriter fw = new FileWriter(outputFile, true)) {
+            fw.write(particleCount + "\n");
+            fw.write("Lattice=\"" + GAS_BOX_HEIGHT + " 0.0 0.0 0.0 " + GAS_BOX_HEIGHT + " 0.0 0.0 0.0 "
+                    + GAS_BOX_HEIGHT + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
+            for(Particle p : particles) {
+                writeGasOvitoParticle(fw, p);
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to write Ovito output file.");
+            e.printStackTrace();
+        }
     }
 
     public static int getParticleCount() {

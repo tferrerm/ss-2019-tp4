@@ -188,9 +188,8 @@ public class LennardJonesGasManager {
 		double accumulatedTime = 0.0;
 		List<Particle> previousParticles = initPreviousParticles(grid.getParticles());
 
-		if (Configuration.getTimeLimit() == -1)
 		while(Double.compare(accumulatedTime, getTimeLimit()) <= 0) {
-			Configuration.writeOvitoOutputFile(accumulatedTime, grid.getParticles());
+			Configuration.writeGasOvitoOutputFile(accumulatedTime, grid.getParticles());
 
 			// get balance time
 			if (balanceTime == 0 && isBalanced()) {

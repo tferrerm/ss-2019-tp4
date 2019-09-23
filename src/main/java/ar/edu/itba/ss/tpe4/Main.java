@@ -10,9 +10,10 @@ public final class Main {
     private Main() {}
 
     public static void main(String[] args) {
-    	if(Configuration.requestMode() == Mode.OSCILLATOR) {
+        Mode request = Configuration.requestMode();
+    	if(request == Mode.OSCILLATOR) {
     		executeOscillatorRun();
-    	} else if (Configuration.requestMode() == Mode.LENNARD_JONES_GAS) {
+    	} else if (request == Mode.LENNARD_JONES_GAS) {
             executeGasRun();
     	}
         long endTime = System.nanoTime();
