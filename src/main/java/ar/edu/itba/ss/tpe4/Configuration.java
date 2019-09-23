@@ -41,7 +41,7 @@ public final class Configuration {
     private static double GAS_PARTICLE_MAX_INITIAL_VELOCITY = 0.1;
     private static final double GAS_PARTICLE_MASS = 0.1; // adimensional
     private static final double GAS_INITIAL_VELOCITY = 10; // m/s
-    private static final double GAS_R = 5; // m
+    public static final double GAS_RANGE = 5; // m
     public static final double GAS_BOX_HEIGHT = 200; // m
     public static final double GAS_BOX_WIDTH = 400; // m
     public static final double GAS_BOX_HOLE_SIZE = 50; // m
