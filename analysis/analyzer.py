@@ -38,7 +38,7 @@ def calculateCollisionTimesAverage(simulation):
 
 def calculatePositionOverTime(simulation):
   accumulatedTimes = [step.time for step in simulation.steps]
-  positions = [step.particle[FIRST_PARTICLE].position[X_COORD] for step in simulation.steps]
+  positions = [step.particles[FIRST_PARTICLE].position()[X_COORD] for step in simulation.steps]
   return accumulatedTimes, positions
 
 def calculateProbabilityVelocities(simulation):
