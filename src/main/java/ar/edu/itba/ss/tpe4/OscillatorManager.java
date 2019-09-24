@@ -86,26 +86,25 @@ public class OscillatorManager {
     	List<Particle> currentParticles = grid.getParticles();
     	
     	for(int i = 0; i < currentParticles.size(); i++) {
-			Particle currParticle = currentParticles.get(i);
+			GearParticle currParticle = (GearParticle) currentParticles.get(i);
 			//Particle prevParticle = prevParticles.get(i);
 			
-			List<Double> currParticleR = initGearRList(currParticle);
-			double predictedR = currParticleR.get(0) + currParticleR.get(1) * timeStep
-					+ currParticleR.get(2) * Math.pow(timeStep, 2) / 2
-					+ currParticleR.get(3) * Math.pow(timeStep, 3) / 6
-					+ currParticleR.get(4) * Math.pow(timeStep, 4) / 24
-					+ currParticleR.get(5) * Math.pow(timeStep, 5) / 120;
-			double predictedR1 = currParticleR.get(1) + currParticleR.get(2) * timeStep
-					+ currParticleR.get(3) * Math.pow(timeStep, 2) / 2
-					+ currParticleR.get(4) * Math.pow(timeStep, 3) / 6
-					+ currParticleR.get(5) * Math.pow(timeStep, 4) / 24;
-			double predictedR2 = currParticleR.get(2) + currParticleR.get(3) * timeStep
-					+ currParticleR.get(4) * Math.pow(timeStep, 2) / 2
-					+ currParticleR.get(5) * Math.pow(timeStep, 3) / 6;
-			// GUARDAR PARA EFICIENCIA?
-			//double predictedR3 = currParticleR.get(3) + currParticleR.get(4) * timeStep + currParticleR.get(5) * Math.pow(timeStep, 2) / 2;
-			//double predictedR4 = currParticleR.get(4) + currParticleR.get(5) * timeStep;
-			//double predictedR5 = currParticleR.get(5);
+			//List<Double> currParticleR = initGearRList(currParticle);
+			double predictedR = currParticle.getPosition().getX() + currParticle.getVelocity().getX() * timeStep
+					+ currParticle.getR2() * Math.pow(timeStep, 2) / 2
+					+ currParticle.getR3() * Math.pow(timeStep, 3) / 6
+					+ currParticle.getR4() * Math.pow(timeStep, 4) / 24
+					+ currParticle.getR5() * Math.pow(timeStep, 5) / 120;
+			double predictedR1 = currParticle.getVelocity().getX() + currParticle.getR2() * timeStep
+					+ currParticle.getR3() * Math.pow(timeStep, 2) / 2
+					+ currParticle.getR4() * Math.pow(timeStep, 3) / 6
+					+ currParticle.getR5() * Math.pow(timeStep, 4) / 24;
+			double predictedR2 = currParticle.getR2() + currParticle.getR3() * timeStep
+					+ currParticle.getR4() * Math.pow(timeStep, 2) / 2
+					+ currParticle.getR5() * Math.pow(timeStep, 3) / 6;
+			double predictedR3 = currParticle.getR3() + currParticle.getR4() * timeStep + currParticle.getR5() * Math.pow(timeStep, 2) / 2;
+			double predictedR4 = currParticle.getR4() + currParticle.getR5() * timeStep;
+			double predictedR5 = currParticle.getR5();
 			
 			double newAccelerationX = getAcceleration(predictedR, predictedR1, currParticle.getMass());
 			double deltaAcceleration = newAccelerationX - predictedR2;
@@ -113,22 +112,30 @@ public class OscillatorManager {
 		
 			double correctedPositionX = predictedR + (3 / (double) 16) * deltaR2;
 			double correctedVelocityX = predictedR1 + (251 / (double) 360) * deltaR2 / timeStep;
+			double correctedR2 = predictedR2 + deltaR2 * 2 / Math.pow(timeStep, 2);
+			double correctedR3 = predictedR3 + (11 / (double) 18) * deltaR2 * 6 / Math.pow(timeStep, 3);
+			double correctedR4 = predictedR4 + (1 / (double) 6) * deltaR2 * 24 / Math.pow(timeStep, 4);
+			double correctedR5 = predictedR5 + (1 / (double) 60) * deltaR2 * 120 / Math.pow(timeStep, 5);
 			
 			currParticle.setPosition(correctedPositionX, 0);
 			currParticle.setVelocity(correctedVelocityX, 0);
+			currParticle.setR2(correctedR2);
+			currParticle.setR3(correctedR3);
+			currParticle.setR4(correctedR4);
+			currParticle.setR5(correctedR5);
 		}
     }
 
-    private List<Double> initGearRList(Particle p) {
-    	List<Double> res = new ArrayList<>();
-    	res.add(p.getPosition().getX());
-    	res.add(p.getVelocity().getX());
-    	res.add(getAcceleration(p));
-		res.add(getR3(p));
-		res.add(getR4(p));
-		res.add(getR5(p));
-		return res;
-    }
+//    private List<Double> initGearRList(Particle p) {
+//    	List<Double> res = new ArrayList<>();
+//    	res.add(p.getPosition().getX());
+//    	res.add(p.getVelocity().getX());
+//    	res.add(getAcceleration(p));
+//		res.add(getR3(p));
+//		res.add(getR4(p));
+//		res.add(getR5(p));
+//		return res;
+//    }
     
     private double getAcceleration(final Particle p) {
     	return getParticleForce(p) / p.getMass();
@@ -138,20 +145,20 @@ public class OscillatorManager {
     	return getParticleForce(position, velocity) / mass;
 	}
 
-	private double getR3(Particle p) {
-    	return - (Configuration.OSCILLATOR_K / p.getMass()) * p.getVelocity().getX()
-    			- (Configuration.OSCILLATOR_GAMMA / p.getMass()) * getAcceleration(p);
-    }
-    
-    private double getR4(Particle p) {
-    	return - (Configuration.OSCILLATOR_K / p.getMass()) * getAcceleration(p)
-    			- (Configuration.OSCILLATOR_GAMMA / p.getMass()) * getR3(p);
-    }
-    
-    private double getR5(Particle p) {
-    	return - (Configuration.OSCILLATOR_K / p.getMass()) * getR3(p)
-    			- (Configuration.OSCILLATOR_GAMMA / p.getMass()) * getR4(p);
-    }
+//	private double getR3(Particle p) {
+//    	return - (Configuration.OSCILLATOR_K / p.getMass()) * p.getVelocity().getX()
+//    			- (Configuration.OSCILLATOR_GAMMA / p.getMass()) * getAcceleration(p);
+//    }
+//    
+//    private double getR4(Particle p) {
+//    	return - (Configuration.OSCILLATOR_K / p.getMass()) * getAcceleration(p)
+//    			- (Configuration.OSCILLATOR_GAMMA / p.getMass()) * getR3(p);
+//    }
+//    
+//    private double getR5(Particle p) {
+//    	return - (Configuration.OSCILLATOR_K / p.getMass()) * getR3(p)
+//    			- (Configuration.OSCILLATOR_GAMMA / p.getMass()) * getR4(p);
+//    }
     
     private double getParticleForce(final Particle p) {
     	return - Configuration.OSCILLATOR_K * p.getPosition().getX() - Configuration.OSCILLATOR_GAMMA * p.getVelocity().getX();
