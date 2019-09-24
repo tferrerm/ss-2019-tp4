@@ -289,7 +289,7 @@ public final class Configuration {
     }
 
     private static void writeGasOvitoParticle(final FileWriter fw, final Particle particle) throws IOException {
-        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + particle.getPosition().getX() + " " + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " 
+        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + particle.getPosition().getX() / 400.0 + " " + particle.getPosition().getY() / 200.0 + " " + particle.getVelocity().getX() + " " 
         		+ particle.getVelocity().getY());
         fw.write('\n');
     }

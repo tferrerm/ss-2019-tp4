@@ -73,7 +73,7 @@ public class LennardJonesGasManager {
 			if (isOutsideTopBound || isOutsideBottomBound) {
 				particle.setVelocity(particle.getVelocity().x, -particle.getVelocity().y);
 			}
-
+			
 			if (isOutsideLeftBound || isOutsideRightBound) {
 				particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
 			}
@@ -200,12 +200,13 @@ public class LennardJonesGasManager {
 
 			// update position if the particles bounce
 			updatePositionByBouncing(grid.getParticles());
-
+			
 			// increase time by dt
 			accumulatedTime += Configuration.getTimeStep();
-
+			
 			// update position and velocity
 			verletUpdate(previousParticles);
+
 		}
 	}
 
