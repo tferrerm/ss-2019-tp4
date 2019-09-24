@@ -255,7 +255,7 @@ public final class Configuration {
    }
 
     private static void generateOvitoOutputFile() {
-        File outputFile = new File("./ovito_output.xyz");
+        File outputFile = new File("./ovito_output_" + integrator.toString().toLowerCase() + ".xyz");
         outputFile.delete();
         try {
             outputFile.createNewFile();
