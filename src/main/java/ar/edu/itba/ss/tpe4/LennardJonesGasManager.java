@@ -147,12 +147,13 @@ public class LennardJonesGasManager {
 			Particle prevParticle = previousParticles.get(i);
 			Point2D.Double acceleration  = getAppliedAcceleration(currParticle);
 			double newPositionX = 2 * currParticle.getPosition().getX() - prevParticle.getPosition().getX()
-					+ Math.pow(Configuration.getTimeStep(), 2) * acceleration.x; //+error
+					+ Math.pow(Configuration.getTimeStep(), 2) * acceleration.x;
 			double newPositionY = 2 * currParticle.getPosition().getY() - prevParticle.getPosition().getY()
-					+ Math.pow(Configuration.getTimeStep(), 2) * acceleration.y; //+error
-			double newVelocityX = (newPositionX - prevParticle.getPosition().getX()) / (2 * Configuration.getTimeStep()); // + error
-			double newVelocityY = (newPositionY - prevParticle.getPosition().getY()) / (2 * Configuration.getTimeStep()); // + error
-			
+					+ Math.pow(Configuration.getTimeStep(), 2) * acceleration.y;
+			double newVelocityX = (newPositionX - prevParticle.getPosition().getX()) / (2 * Configuration.getTimeStep());
+			double newVelocityY = (newPositionY - prevParticle.getPosition().getY()) / (2 * Configuration.getTimeStep());
+			if(newPositionX < 0 || newPositionY < 0)
+				System.out.println("ID " + currParticle.getId() + " X " + newPositionX + " Y " + newPositionY + " VX " + newVelocityX + " VY " + newVelocityY);
 			prevParticle.setPosition(currParticle.getPosition().getX(), currParticle.getPosition().getY());
 			prevParticle.setVelocity(currParticle.getVelocity().getX(), currParticle.getPosition().getY());
 			currParticle.setPosition(newPositionX, newPositionY);
