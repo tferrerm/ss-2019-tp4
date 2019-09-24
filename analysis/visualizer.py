@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from analyzer import calculateCollisionFrequency, calculateCollisionTimesAverage, calculateProbabilityCollisionTimesDistribution, calculateProbabilityVelocities, calculateDiffusion
+from analyzer import calculatePositionOverTime
 from parser import parseDirectoryFromArgs, parseModeFromArgs
 from calculator import errorFn
 import os
