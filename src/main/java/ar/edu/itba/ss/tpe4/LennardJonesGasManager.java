@@ -10,7 +10,7 @@ public class LennardJonesGasManager {
 	
 	private final Grid grid;
 	private double balanceTime;
-	private HashMap<Particle, Double> positionMap;
+	private HashMap<Particle, Point2D.Double> positionMap;
 
 	public LennardJonesGasManager(Grid grid) {
 		this.grid = grid;
@@ -64,34 +64,36 @@ public class LennardJonesGasManager {
 	public void updatePositionByBouncing(List<Particle> particles) {
 		// The particle has to bounce between the different walls
 		for (Particle particle: particles) {
-			Boolean isOutsideTopBound = particle.getPosition().y >= Configuration.GAS_BOX_HEIGHT;
-			Boolean isOutsideBottomBound = particle.getPosition().y <= 0;
-			Boolean isOutsideRightBound = particle.getPosition().x >= Configuration.GAS_BOX_WIDTH;
-			Boolean isOutsideLeftBound = particle.getPosition().x <= 0;
-			Boolean isWithinHole = particle.getPosition().y >= Configuration.GAS_BOX_HOLE_POSITION && particle.getPosition().y <= Configuration.GAS_BOX_HOLE_POSITION + Configuration.GAS_BOX_HOLE_SIZE;
+			Point2D.Double lastPosition = this.positionMap.get(particle);
+			Boolean isOutsideTopBound = particle.getPosition().y > Configuration.GAS_BOX_HEIGHT;
+			Boolean isOutsideBottomBound = particle.getPosition().y < 0;
+			Boolean isOutsideRightBound = particle.getPosition().x > Configuration.GAS_BOX_WIDTH;
+			Boolean isOutsideLeftBound = particle.getPosition().x < 0;
+			Boolean isWithinHole = particle.getPosition().y > Configuration.GAS_BOX_HOLE_POSITION && particle.getPosition().y < Configuration.GAS_BOX_HOLE_POSITION + Configuration.GAS_BOX_HOLE_SIZE;
 
 			if (isOutsideTopBound || isOutsideBottomBound) {
 				particle.setVelocity(particle.getVelocity().x, -particle.getVelocity().y);
+				particle.setPosition(lastPosition.x, lastPosition.y);
 			}
 			
 			if (isOutsideLeftBound || isOutsideRightBound) {
 				particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
+				particle.setPosition(lastPosition.x, lastPosition.y);
 			}
 
 			// If the particle is in the area that's affected by the split
 			if (!isWithinHole) {
-				double lastX = this.positionMap.get(particle);
-				Boolean changedChamber = !isInFirstChamber(particle) && lastX < Configuration.GAS_BOX_SPLIT || isInFirstChamber(particle) && lastX > Configuration.GAS_BOX_SPLIT;
+				Boolean changedChamber = !isInFirstChamber(particle) && lastPosition.x < Configuration.GAS_BOX_SPLIT || isInFirstChamber(particle) && lastPosition.x > Configuration.GAS_BOX_SPLIT;
 				// Only make it bounce if it CHANGED the chamber, but don't update the position in the position map
 				// so we don't enter an endless loop.
 				if (changedChamber) {
-					particle.setPosition(lastX, particle.getPosition().y);
+					particle.setPosition(lastPosition.x, particle.getPosition().y);
 					particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
 					continue;
 				} 
 			}
 
-			this.positionMap.put(particle, particle.getPosition().x);
+			this.positionMap.put(particle, (Point2D.Double) particle.getPosition().clone());
 		}
 	}
 
@@ -187,7 +189,7 @@ public class LennardJonesGasManager {
 
 		// load previous particles position
 		for (Particle particle: previousParticles) {
-			this.positionMap.put(particle, particle.getPosition().x);
+			this.positionMap.put(particle, (Point2D.Double) particle.getPosition().clone());
 		}
 
 		while(Double.compare(accumulatedTime, getTimeLimit()) <= 0) {
@@ -198,15 +200,15 @@ public class LennardJonesGasManager {
 				balanceTime = accumulatedTime;
 			}
 
-			// update position if the particles bounce
-			updatePositionByBouncing(grid.getParticles());
 			
 			// increase time by dt
 			accumulatedTime += Configuration.getTimeStep();
 			
 			// update position and velocity
 			verletUpdate(previousParticles);
-
+			
+			// update position if the particles bounce
+			updatePositionByBouncing(grid.getParticles());
 		}
 	}
 

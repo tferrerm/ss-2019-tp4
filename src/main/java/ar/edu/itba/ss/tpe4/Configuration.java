@@ -44,7 +44,7 @@ public final class Configuration {
     public static final double GAS_BOX_HEIGHT = 200; // m
     public static final double GAS_BOX_WIDTH = 400; // m
     public static final double GAS_BOX_HOLE_SIZE = 50; // m
-    public static final double GAS_BOX_HOLE_POSITION = 175; // m
+    public static final double GAS_BOX_HOLE_POSITION = 75; // m
     public static final double GAS_BOX_SPLIT = 200; // m
 
     private Configuration() {
