@@ -21,6 +21,8 @@ public final class Configuration {
     private static double timeStep; 
     private static int timeLimit;
     
+    public static String filename;
+    
     public static final int AREA_BORDER_LENGTH = 1;
     private static final int OSCILLATOR_PARTICLE_COUNT = 1;
     private static final double OSCILLATOR_RADIUS = 0;
@@ -77,6 +79,7 @@ public final class Configuration {
         	selectedIntegrator = stringToInt(scanner.nextLine());
         }
         integrator = Integrator.valueOf(selectedIntegrator).get();
+        filename = "./ovito_output_" + integrator.toString().toLowerCase() + ".xyz";
         
         System.out.println("Enter Time Step:");
         Double selectedTimeStep = null;
@@ -262,7 +265,7 @@ public final class Configuration {
    }
 
     private static void generateOvitoOutputFile() {
-        File outputFile = new File("./ovito_output_" + integrator.toString().toLowerCase() + ".xyz");
+        File outputFile = new File(filename);
         outputFile.delete();
         try {
             outputFile.createNewFile();
@@ -273,7 +276,7 @@ public final class Configuration {
     }
 
     public static void writeOvitoOutputFile(final Double time, final List<Particle> particles) {
-        File outputFile = new File("ovito_output.xyz");
+        File outputFile = new File(filename);
         try(FileWriter fw = new FileWriter(outputFile, true)) {
             fw.write(particleCount + "\n");
             fw.write("Lattice=\"" + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 "
@@ -301,7 +304,7 @@ public final class Configuration {
     }
 
     public static void writeGasOvitoOutputFile(final Double time, final List<Particle> particles) {
-        File outputFile = new File("ovito_output.xyz");
+        File outputFile = new File(filename);
         try(FileWriter fw = new FileWriter(outputFile, true)) {
             fw.write(particleCount + "\n");
             fw.write("Lattice=\"" + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 "

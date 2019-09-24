@@ -29,3 +29,18 @@ def parseParticle(line):
   properties = line.split(" ")
   particle = Particle(*properties)
   return particle
+
+def parseOscillatorDirectory(file_prefix = 'ovito_output'):
+  directory = sys.argv[1]
+  simulations = {
+                  'verlet': None,
+                  'beeman': None,
+                  'gear_predictor_corrector': None
+                }
+
+  for simtype in simulations.keys():
+    filename = '{}_{}.xyz'.format(file_prefix, simtype)
+    path = os.path.abspath(os.path.join(directory, filename))
+    simulations[simtype] = parseFile(path)
+
+  return simulations
