@@ -107,12 +107,13 @@ public class LennardJonesGasManager {
 		// TODO: use cellindex method
 		// Get particles closer to the constant GAS_RANGE and larger than 0 (to avoid taking myself into account)
 		// And only those that are in the same chamber
-		return particles.stream().filter(p -> distance(particle, p) > 0 && distance(particle, p) <= Configuration.GAS_RANGE && isInFirstChamber(particle) == isInFirstChamber(p)).collect(Collectors.toList());
+		return particles.stream().filter(p -> !particle.equals(p) && distance(particle, p) <= Configuration.GAS_RANGE && isInFirstChamber(particle) == isInFirstChamber(p)).collect(Collectors.toList());
 	}
 
 	private Point2D.Double getAppliedForce (Particle particle) {
 		// First we get the particles that affect our motion (closer to GAS_RANGE distance)
 		List<Particle> closeParticles = getClosestParticles(particle);
+		List<Particle> wallColliders = getWallColiders(particle);
 		double totalForceX = 0.0;
 		double totalForceY = 0.0;
 
@@ -126,8 +127,37 @@ public class LennardJonesGasManager {
 			totalForceX += Math.cos(forceAngle) * forceModulus;
 			totalForceY += Math.sin(forceAngle) * forceModulus;
 		}
+
+		// Same thing but with the particles that allow for wall collisions
+		for (Particle wall: wallColliders) {
+			double forceModulus = getParticleForce(distance(wall, particle));
+			double forceAngle = Math.atan2(wall.getPosition().y - particle.getPosition().y, wall.getPosition().x - particle.getPosition().x);
+			totalForceX += Math.cos(forceAngle) * forceModulus;
+			totalForceY += Math.sin(forceAngle) * forceModulus;
+		}
 		
 		return new Point2D.Double(totalForceX, totalForceY);
+	}
+
+	private List<Particle> getWallColiders(Particle particle) {
+		// Generate a list of particles that generate the force to make the particle collide with the wall.
+		List<Particle> wallPoints = new ArrayList<>();
+
+		wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(particle.getPosition().x, 0))); // bottom wall
+		wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(particle.getPosition().x, Configuration.GAS_BOX_HEIGHT))); // top wall
+		wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(0, particle.getPosition().y))); // left wall
+		wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(Configuration.GAS_BOX_WIDTH, particle.getPosition().y))); // right wall
+		if(particle.getPosition().y < Configuration.GAS_BOX_HOLE_POSITION) {
+			wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(Configuration.GAS_BOX_SPLIT, particle.getPosition().y))); // bottom middle wall
+		} else if (particle.getPosition().y > Configuration.GAS_BOX_HOLE_POSITION + Configuration.GAS_BOX_HOLE_SIZE) {
+			wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(Configuration.GAS_BOX_SPLIT, particle.getPosition().y))); // top middle wall
+		} else {
+			wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(Configuration.GAS_BOX_SPLIT, Configuration.GAS_BOX_HOLE_POSITION))); // top corner middle wall
+			wallPoints.add(new Particle(Configuration.GAS_PARTICLE_RADIUS, new Point2D.Double(Configuration.GAS_BOX_SPLIT, Configuration.GAS_BOX_HOLE_POSITION + Configuration.GAS_BOX_HOLE_SIZE))); // bottom corner middle wall
+		}
+
+		// Return only those close enough to collide
+		return wallPoints.stream().filter(wall -> distance(particle, wall) <= Configuration.GAS_RANGE).collect(Collectors.toList());
 	}
 
 	private Point2D.Double getAppliedAcceleration (Particle particle) {
@@ -208,7 +238,7 @@ public class LennardJonesGasManager {
 			verletUpdate(previousParticles);
 			
 			// update position if the particles bounce
-			updatePositionByBouncing(grid.getParticles());
+			// updatePositionByBouncing(grid.getParticles());
 		}
 	}
 

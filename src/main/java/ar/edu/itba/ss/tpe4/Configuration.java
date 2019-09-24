@@ -33,7 +33,7 @@ public final class Configuration {
     private static final int OSCILLATOR_SHIFTING = 1;
     
     private static final int GAS_PARTICLE_COUNT = 300;
-    private static final double GAS_PARTICLE_RADIUS = 0.005;
+    public static final double GAS_PARTICLE_RADIUS = 0.005;
     public static final double GAS_EPSILON = 2; // adimensional
     public static final double GAS_Rm = 1; // adimensional
     public static final double GAS_L = 12; // adimensional
