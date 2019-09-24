@@ -38,7 +38,6 @@ public final class Configuration {
     public static final double GAS_Rm = 1; // adimensional
     public static final double GAS_L = 12; // adimensional
     public static final double GAS_J = 6; // adimensional
-    private static double GAS_PARTICLE_MAX_INITIAL_VELOCITY = 0.1;
     private static final double GAS_PARTICLE_MASS = 0.1; // adimensional
     private static final double GAS_INITIAL_VELOCITY = 10; // m/s
     public static final double GAS_RANGE = 5; // m
@@ -223,14 +222,13 @@ public final class Configuration {
                     double randomPositionY = 0;
                     boolean isValidPosition = false;
 
-                    // TODO: Add Particles on hole borders
                     while(!isValidPosition) {
                         randomPositionX = (GAS_BOX_WIDTH - GAS_BOX_SPLIT - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
                         randomPositionY = (GAS_BOX_HEIGHT - 2 * GAS_PARTICLE_RADIUS) * r.nextDouble() + GAS_PARTICLE_RADIUS;
                         isValidPosition = validateParticlePosition(particles, randomPositionX, randomPositionY, GAS_PARTICLE_RADIUS);
                     }
 
-                    double randomVelocity = GAS_PARTICLE_MAX_INITIAL_VELOCITY * r.nextDouble();
+                    double randomVelocity = GAS_INITIAL_VELOCITY;
                     double angle = 2 * Math.PI * r.nextDouble();
                     double randomVelocityX = Math.cos(angle) * randomVelocity;
                     double randomVelocityY = Math.sin(angle) * randomVelocity;
@@ -273,7 +271,7 @@ public final class Configuration {
         try(FileWriter fw = new FileWriter(outputFile, true)) {
             fw.write(particleCount + "\n");
             fw.write("Lattice=\"" + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 "
-                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
+                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
             for(Particle p : particles) {
                 writeOvitoParticle(fw, p);
             }
@@ -297,11 +295,11 @@ public final class Configuration {
     }
 
     public static void writeGasOvitoOutputFile(final Double time, final List<Particle> particles) {
-        File outputFile = new File("ovito_output_gas.xyz");
+        File outputFile = new File("ovito_output.xyz");
         try(FileWriter fw = new FileWriter(outputFile, true)) {
             fw.write(particleCount + "\n");
-            fw.write("Lattice=\"" + GAS_BOX_HEIGHT + " 0.0 0.0 0.0 " + GAS_BOX_HEIGHT + " 0.0 0.0 0.0 "
-                    + GAS_BOX_HEIGHT + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
+            fw.write("Lattice=\"" + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 "
+                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
             for(Particle p : particles) {
                 writeGasOvitoParticle(fw, p);
             }

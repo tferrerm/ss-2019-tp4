@@ -16,17 +16,13 @@ public class LennardJonesGasManager {
 		this.grid = grid;
 		this.balanceTime = 0.0;
 		this.positionMap = new HashMap<>();
-
-		for (Particle particle: grid.getParticles()) {
-			this.positionMap.put(particle, particle.getPosition().x);
-		}
 	}
 
 	private double getParticleForce(double distance) {
 		// Formula to get the force applied from one particle to another, extracted from the slides
 		double coefficient = Configuration.GAS_L * Configuration.GAS_EPSILON / Configuration.GAS_Rm;
 		double repulsion = Math.pow((Configuration.GAS_Rm / distance), Configuration.GAS_L + 1);
-		double attraction =Math.pow((Configuration.GAS_Rm / distance), Configuration.GAS_J + 1);
+		double attraction = Math.pow((Configuration.GAS_Rm / distance), Configuration.GAS_J + 1);
 		return - coefficient * (repulsion - attraction);
 	}
 
@@ -89,6 +85,7 @@ public class LennardJonesGasManager {
 				// Only make it bounce if it CHANGED the chamber, but don't update the position in the position map
 				// so we don't enter an endless loop.
 				if (changedChamber) {
+					particle.setPosition(lastX, particle.getPosition().y);
 					particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
 					continue;
 				} 
@@ -127,7 +124,7 @@ public class LennardJonesGasManager {
 			totalForceX += Math.cos(forceAngle) * forceModulus;
 			totalForceY += Math.sin(forceAngle) * forceModulus;
 		}
-
+		
 		return new Point2D.Double(totalForceX, totalForceY);
 	}
 
@@ -187,6 +184,11 @@ public class LennardJonesGasManager {
 	public void execute() {
 		double accumulatedTime = 0.0;
 		List<Particle> previousParticles = initPreviousParticles(grid.getParticles());
+
+		// load previous particles position
+		for (Particle particle: previousParticles) {
+			this.positionMap.put(particle, particle.getPosition().x);
+		}
 
 		while(Double.compare(accumulatedTime, getTimeLimit()) <= 0) {
 			Configuration.writeGasOvitoOutputFile(accumulatedTime, grid.getParticles());
