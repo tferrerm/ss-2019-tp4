@@ -170,7 +170,14 @@ public final class Configuration {
         
         switch(mode) {
         case OSCILLATOR:
-        	particles.add(new Particle(OSCILLATOR_RADIUS, OSCILLATOR_MASS, x, y, vx, vy));
+        	switch(integrator) {
+        	case GEAR_PREDICTOR_CORRECTOR:
+        		particles.add(new GearParticle(OSCILLATOR_RADIUS, OSCILLATOR_MASS, x, y, vx, vy));
+            	break;
+            default:
+            	particles.add(new Particle(OSCILLATOR_RADIUS, OSCILLATOR_MASS, x, y, vx, vy));
+            	break;
+        	}
         	break;
         case LENNARD_JONES_GAS:
         	particles.add(new Particle(GAS_PARTICLE_RADIUS, GAS_PARTICLE_MASS, x, y, vx, vy));
@@ -203,7 +210,7 @@ public final class Configuration {
         System.exit(1);
     }
 
-    /* Time (0) - Big Particle Properties - Small Particles Properties */
+    /* Time (0) */
     private static void generateInputFile() {
         List<Particle> particles = new ArrayList<>();
         File inputFile = new File(inputFileName);
@@ -284,7 +291,7 @@ public final class Configuration {
     }
 
     private static void writeOvitoParticle(final FileWriter fw, final Particle particle) throws IOException {
-        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + particle.getPosition().getX() 
+        fw.write(particle.getId() + " " + particle.getMass() + " " + (1 + particle.getPosition().getX()) 
         		+ " " + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " 
         		+ particle.getVelocity().getY());
         fw.write('\n');

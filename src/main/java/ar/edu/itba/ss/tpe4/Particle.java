@@ -3,7 +3,7 @@ package ar.edu.itba.ss.tpe4;
 import java.awt.geom.Point2D;
 import java.util.Objects;
 
-public final class Particle implements Cloneable {
+public class Particle implements Cloneable {
 
     private static int count = 0;
 
