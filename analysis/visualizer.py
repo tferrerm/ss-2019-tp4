@@ -6,12 +6,22 @@ from calculator import errorFn
 import os
 
 OUTPUT_FOLDER = 'output'
-COLORS = { 'verlet': 'red', 'beeman': 'green', 'gear_predictor_corrector': 'blue'}
+COLORS = { 'verlet': 'red', 'beeman': 'green', 'gear_predictor_corrector': 'blue',
+           'analytic': 'pink' }
+A = 0.1
+GAMMA = 100.0
+K = 10e4
+M = 70.0
 
 def saveFig(fig, name):
   if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
   fig.savefig(f'{OUTPUT_FOLDER}/{name}.png')
+
+def oscillator_func(t):
+    return A * np.exp(-(GAMMA / 2 * M) * t) * np.cos(
+      np.sqrt(K / M - GAMMA * GAMMA / (4 * M * M)) * t
+    )
 
 def ex1_2(simulations):
   mixed_fig, mixed_ax = plt.subplots()
@@ -28,11 +38,12 @@ def ex1_2(simulations):
     ax.set_xlabel('Tiempo (s)')
     ax.set_ylabel('Posición (m)')
     mixed_ax.plot(times, positions, color=COLORS[simtype], linestyle='dashed')
-    mixed_ax.set_xlabel('Tiempo (s)')
-    mixed_ax.set_ylabel('Posición (m)')
     fig.tight_layout()
-
     saveFig(fig, f'{simulation.name}--1_2')
+
+  mixed_ax.set_xlabel('Tiempo (s)')
+  mixed_ax.set_ylabel('Posición (m)')
+  mixed_ax.plot(times, oscillator_func(np.array(times)), color=COLORS['analytic'], linestyle='dashed')
 
   mixed_fig.tight_layout()
   saveFig(mixed_fig, f'combined--1_2')
