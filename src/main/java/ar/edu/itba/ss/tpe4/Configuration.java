@@ -39,7 +39,7 @@ public final class Configuration {
     public static final double GAS_L = 12; // adimensional
     public static final double GAS_J = 6; // adimensional
     private static final double GAS_PARTICLE_MASS = 0.1; // adimensional
-    private static final double GAS_INITIAL_VELOCITY = 10; // m/s
+    public static final double GAS_INITIAL_VELOCITY = 10; // m/s
     public static final double GAS_RANGE = 5; // m
     public static final double GAS_BOX_HEIGHT = 200; // m
     public static final double GAS_BOX_WIDTH = 400; // m
@@ -290,7 +290,7 @@ public final class Configuration {
 
     private static void writeGasOvitoParticle(final FileWriter fw, final Particle particle) throws IOException {
         fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + particle.getPosition().getX() / 400.0 + " " + particle.getPosition().getY() / 200.0 + " " + particle.getVelocity().getX() + " " 
-        		+ particle.getVelocity().getY());
+        		+ particle.getVelocity().getY() + " " + particle.getVelocityModule());
         fw.write('\n');
     }
 
@@ -299,10 +299,11 @@ public final class Configuration {
         try(FileWriter fw = new FileWriter(outputFile, true)) {
             fw.write(particleCount + "\n");
             fw.write("Lattice=\"" + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 "
-                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
+                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2:speed:R:1 Time=" + time + "\n");
             for(Particle p : particles) {
                 writeGasOvitoParticle(fw, p);
             }
+
         } catch (IOException e) {
             System.err.println("Failed to write Ovito output file.");
             e.printStackTrace();

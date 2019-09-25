@@ -11,11 +11,13 @@ public class LennardJonesGasManager {
 	private final Grid grid;
 	private double balanceTime;
 	private HashMap<Particle, Point2D.Double> positionMap;
+	private List<Particle> previousParticles;
 
 	public LennardJonesGasManager(Grid grid) {
 		this.grid = grid;
 		this.balanceTime = 0.0;
 		this.positionMap = new HashMap<>();
+		this.previousParticles = new ArrayList<>();
 	}
 
 	private double getParticleForce(double distance) {
@@ -103,8 +105,7 @@ public class LennardJonesGasManager {
 	}
 
 	public List<Particle> getClosestParticles(Particle particle) {
-		List<Particle> particles = grid.getParticles();
-		// TODO: use cellindex method
+		List<Particle> particles = this.previousParticles;
 		// Get particles closer to the constant GAS_RANGE and larger than 0 (to avoid taking myself into account)
 		// And only those that are in the same chamber
 		return particles.stream().filter(p -> !particle.equals(p) && distance(particle, p) <= Configuration.GAS_RANGE && isInFirstChamber(particle) == isInFirstChamber(p)).collect(Collectors.toList());
@@ -122,7 +123,8 @@ public class LennardJonesGasManager {
 		// then with that angle we calculate the components of the force in X and Y coordinates
 		// and then we add that to the total force (for each component)
 		for (Particle p: closeParticles) {
-			double forceModulus = getParticleForce(distance(p, particle));
+			double distance = Math.max(distance(p, particle), 0.78);
+			double forceModulus = getParticleForce(distance);
 			double forceAngle = Math.atan2(p.getPosition().y - particle.getPosition().y, p.getPosition().x - particle.getPosition().x);
 			totalForceX += Math.cos(forceAngle) * forceModulus;
 			totalForceY += Math.sin(forceAngle) * forceModulus;
@@ -130,7 +132,8 @@ public class LennardJonesGasManager {
 
 		// Same thing but with the particles that allow for wall collisions
 		for (Particle wall: wallColliders) {
-			double forceModulus = getParticleForce(distance(wall, particle));
+			double distance = Math.max(distance(wall, particle), 0.78);
+			double forceModulus = getParticleForce(distance);
 			double forceAngle = Math.atan2(wall.getPosition().y - particle.getPosition().y, wall.getPosition().x - particle.getPosition().x);
 			totalForceX += Math.cos(forceAngle) * forceModulus;
 			totalForceY += Math.sin(forceAngle) * forceModulus;
@@ -184,7 +187,11 @@ public class LennardJonesGasManager {
 			double newVelocityY = (newPositionY - prevParticle.getPosition().getY()) / (2 * Configuration.getTimeStep()); // + error
 			
 			prevParticle.setPosition(currParticle.getPosition().getX(), currParticle.getPosition().getY());
-			prevParticle.setVelocity(currParticle.getVelocity().getX(), currParticle.getPosition().getY());
+			prevParticle.setVelocity(currParticle.getVelocity().getX(), currParticle.getVelocity().getY());
+			if (newVelocityX == newVelocityY && newVelocityX == 0) {
+				newVelocityX = currParticle.getVelocity().x;
+				newVelocityY = currParticle.getVelocity().y;
+			}
 			currParticle.setPosition(newPositionX, newPositionY);
 			currParticle.setVelocity(newVelocityX, newVelocityY);
 		}
@@ -215,10 +222,10 @@ public class LennardJonesGasManager {
 
 	public void execute() {
 		double accumulatedTime = 0.0;
-		List<Particle> previousParticles = initPreviousParticles(grid.getParticles());
+		this.previousParticles = initPreviousParticles(grid.getParticles());
 
 		// load previous particles position
-		for (Particle particle: previousParticles) {
+		for (Particle particle: this.previousParticles) {
 			this.positionMap.put(particle, (Point2D.Double) particle.getPosition().clone());
 		}
 
@@ -236,9 +243,8 @@ public class LennardJonesGasManager {
 			
 			// update position and velocity
 			verletUpdate(previousParticles);
-			
-			// update position if the particles bounce
-			// updatePositionByBouncing(grid.getParticles());
+
+			updatePositionByBouncing(grid.getParticles());
 		}
 	}
 
