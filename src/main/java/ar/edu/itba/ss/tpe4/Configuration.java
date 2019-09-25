@@ -280,7 +280,7 @@ public final class Configuration {
         try(FileWriter fw = new FileWriter(outputFile, true)) {
             fw.write(particleCount + "\n");
             fw.write("Lattice=\"" + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 " + AREA_BORDER_LENGTH + " 0.0 0.0 0.0 "
-                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
+                    + AREA_BORDER_LENGTH + "\" Properties=id:I:1:radius:R:1:mass:R:1:pos:R:2:velo:R:2 Time=" + time + "\n");
             for(Particle p : particles) {
                 writeOvitoParticle(fw, p);
             }
@@ -291,7 +291,7 @@ public final class Configuration {
     }
 
     private static void writeOvitoParticle(final FileWriter fw, final Particle particle) throws IOException {
-        fw.write(particle.getId() + " " + particle.getMass() + " " + (1 + particle.getPosition().getX()) 
+        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + (1 + particle.getPosition().getX()) 
         		+ " " + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " 
         		+ particle.getVelocity().getY());
         fw.write('\n');
