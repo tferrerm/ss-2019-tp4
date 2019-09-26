@@ -53,9 +53,7 @@ public final class Configuration {
     }
     
     public static Mode requestMode() {
-    	@SuppressWarnings("resource")
-		Scanner scanner = new Scanner(System.in);
-    	
+    	Scanner scanner = new Scanner(System.in);
     	System.out.println("Enter Mode [0 -> Oscillator; 1 -> Lennard-Jones Gas]: ");
         Integer selectedMode = null;
         while (selectedMode == null || selectedMode < 0 || selectedMode > 1) {
@@ -67,11 +65,12 @@ public final class Configuration {
         	particleCount = OSCILLATOR_PARTICLE_COUNT;
         else
         	particleCount = GAS_PARTICLE_COUNT;
+        requestParameters(scanner);
+        scanner.close();
         return mode;
     }
 
-    public static void requestParameters() {
-        Scanner scanner = new Scanner(System.in);
+    public static void requestParameters(Scanner scanner) {
         
         System.out.println("Enter Integrator [0 -> Verlet; 1 -> Gear Predictor-Corrector; 2 -> Beeman]: ");
         Integer selectedIntegrator = null;
@@ -94,8 +93,6 @@ public final class Configuration {
             selectedTimeLimit = stringToInt(scanner.nextLine());
         }
         timeLimit = selectedTimeLimit;
-
-        scanner.close();
     }
 
     /* Parameters must have already been requested */

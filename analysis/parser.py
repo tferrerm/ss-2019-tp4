@@ -3,6 +3,8 @@ import glob
 import sys
 import os
 
+X_FILE_COORD = 3
+
 def parseDirectoryFromArgs():
   return parseDirectory(sys.argv[1])
 
@@ -44,3 +46,12 @@ def parseOscillatorDirectory(file_prefix = 'ovito_output'):
     simulations[simtype] = parseFile(path)
 
   return simulations
+
+def parseOneLineResultFile(filename):
+    file = open("../results_bash/{}".format(filename))
+    split_line = file.readline().split(" ")
+    return float(split_line[X_FILE_COORD])
+
+def parseDtFromFile(file_index):
+    file = open("../dt_{}.txt".format(file_index))
+    return float(file.readline())

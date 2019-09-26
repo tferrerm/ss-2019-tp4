@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from analyzer import calculatePositionOverTime
-from parser import parseDirectoryFromArgs, parseOscillatorDirectory, parseModeFromArgs
+from parser import parseDirectoryFromArgs, parseOscillatorDirectory, parseModeFromArgs, parseOneLineResultFile, parseDtFromFile
 from calculator import oscillator_func, errorFn
 import os
 
@@ -46,6 +46,23 @@ def ex1_2(simulations):
   analytic_fig.tight_layout()
   saveFig(analytic_fig, f'analytic--1_2')
 
+def ex1_3():
+  fig, ax = plt.subplots()
+  ax.set_xlabel('Paso temporal (s)')
+  ax.set_ylabel('ECM (m^2)')
+  ax.set_xscale('log')
+  ax.set_yscale('log')
+
+  for filename in os.listdir('../results_bash'):
+      x = parseOneLineResultFile(filename)
+      dt_file_index = filename.split('_')[0]
+      dt = parseDtFromFile(dt_file_index)
+      end_time = 5
+      ecm = np.power(x - oscillator_func(end_time), 2)
+      ax.plot(dt, ecm, color='green', linestyle='dashed')
+      print(f"x: {x}, dt: {dt}, ecm: {ecm}")
+
+  plt.show()
 # def ex3_2(simulations):
 #   for simulation in simulations:
 #     print(f'Simulacion: {simulation.name}')
@@ -114,6 +131,8 @@ def run():
   if mode == 1:
     simulations = parseOscillatorDirectory()
     ex1_2(simulations)
+  elif mode == 2:
+    ex1_3()
   else:
     simulations = parseDirectoryFromArgs()
   # elif mode == 2:

@@ -21,7 +21,6 @@ public final class Main {
     }
 
     private static void executeOscillatorRun() {
-        Configuration.requestParameters();
         startTime = System.nanoTime();
         List<Particle> particles = Configuration.generateRandomInputFilesAndParseConfiguration();
         Grid grid = new Grid(particles);
@@ -30,7 +29,6 @@ public final class Main {
     }
 
     private static void executeGasRun() {
-        Configuration.requestParameters();
         startTime = System.nanoTime();
         List<Particle> particles = Configuration.generateRandomInputFilesAndParseConfiguration();
         Grid grid = new Grid(particles);
