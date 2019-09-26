@@ -2,7 +2,7 @@ import numpy
 
 A = 1
 GAMMA = 100.0
-K = 10e4
+K = 1e4
 M = 70.0
 
 def oscillator_func(t):

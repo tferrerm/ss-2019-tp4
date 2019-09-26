@@ -27,7 +27,7 @@ public final class Configuration {
     private static final int OSCILLATOR_PARTICLE_COUNT = 1;
     private static final double OSCILLATOR_RADIUS = 0;
     private static final double OSCILLATOR_MASS = 70; // kg
-    public static final double OSCILLATOR_K = 10e4; // N/m
+    public static final double OSCILLATOR_K = 1e4; // N/m
     public static final double OSCILLATOR_GAMMA = 100; // kg/s
     private static final double OSCILLATOR_A = 1; // HACER
     private static final double OSCILLATOR_INIT_POS = 1; // m
