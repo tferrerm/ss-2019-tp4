@@ -34,7 +34,7 @@ public final class Particle implements Cloneable {
         this.velocity = new Point2D.Double(vx, vy);
     }
 
-    private Particle(final int id, final double radius, final double mass, final double x, final double y,
+    public Particle(final int id, final double radius, final double mass, final double x, final double y,
             final double vx, final double vy) {
         this.id = id;
         this.radius = radius;
@@ -71,6 +71,10 @@ public final class Particle implements Cloneable {
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public double getRadius() {

@@ -39,6 +39,7 @@ public class LennardJonesGasManager {
 			}
 		}
 
+
 		return Math.floor(initialChamberAmount - particles.size() / 2) == 0;
 	}
 
@@ -72,16 +73,12 @@ public class LennardJonesGasManager {
 			Boolean isOutsideRightBound = particle.getPosition().x > Configuration.GAS_BOX_WIDTH;
 			Boolean isOutsideLeftBound = particle.getPosition().x < 0;
 			Boolean isWithinHole = particle.getPosition().y > Configuration.GAS_BOX_HOLE_POSITION && particle.getPosition().y < Configuration.GAS_BOX_HOLE_POSITION + Configuration.GAS_BOX_HOLE_SIZE;
+			double validDelta = 0.5 * Math.random() + 0.2;
 
-			if (isOutsideTopBound || isOutsideBottomBound) {
-				particle.setVelocity(particle.getVelocity().x, -particle.getVelocity().y);
-				particle.setPosition(lastPosition.x, lastPosition.y);
-			}
-			
-			if (isOutsideLeftBound || isOutsideRightBound) {
-				particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
-				particle.setPosition(lastPosition.x, lastPosition.y);
-			}
+			if (isOutsideTopBound) particle.setPosition(lastPosition.x, Configuration.GAS_BOX_HEIGHT - validDelta);
+			if (isOutsideBottomBound) particle.setPosition(lastPosition.x, validDelta);
+			if (isOutsideLeftBound) particle.setPosition(validDelta, lastPosition.y);
+			if (isOutsideRightBound) particle.setPosition(Configuration.GAS_BOX_WIDTH - validDelta, lastPosition.y);
 
 			// If the particle is in the area that's affected by the split
 			if (!isWithinHole) {
@@ -89,8 +86,7 @@ public class LennardJonesGasManager {
 				// Only make it bounce if it CHANGED the chamber, but don't update the position in the position map
 				// so we don't enter an endless loop.
 				if (changedChamber) {
-					particle.setPosition(lastPosition.x, particle.getPosition().y);
-					particle.setVelocity(-particle.getVelocity().x, particle.getVelocity().y);
+					particle.setPosition(lastPosition.x < Configuration.GAS_BOX_SPLIT ? lastPosition.x - validDelta : lastPosition.x + validDelta, particle.getPosition().y);
 					continue;
 				} 
 			}
@@ -221,7 +217,9 @@ public class LennardJonesGasManager {
 	}
 
 	public void execute() {
-		double accumulatedTime = 0.0;
+		double accumulatedTime = 0.0; // s
+		double animationOutputTimeLimit = 0.100; // s
+		double animationOutputTime = 0.0; // s
 		this.previousParticles = initPreviousParticles(grid.getParticles());
 
 		// load previous particles position
@@ -230,7 +228,10 @@ public class LennardJonesGasManager {
 		}
 
 		while(Double.compare(accumulatedTime, getTimeLimit()) <= 0) {
-			Configuration.writeGasOvitoOutputFile(accumulatedTime, grid.getParticles());
+			if (Double.compare(animationOutputTime, animationOutputTimeLimit) >= 0) {
+				Configuration.writeGasOvitoOutputFile(accumulatedTime, grid.getParticles());
+				animationOutputTime = 0.0;
+			}
 
 			// get balance time
 			if (balanceTime == 0 && isBalanced()) {
@@ -240,10 +241,12 @@ public class LennardJonesGasManager {
 			
 			// increase time by dt
 			accumulatedTime += Configuration.getTimeStep();
+			animationOutputTime += Configuration.getTimeStep();
 			
 			// update position and velocity
 			verletUpdate(previousParticles);
 
+			// bound box
 			updatePositionByBouncing(grid.getParticles());
 		}
 	}

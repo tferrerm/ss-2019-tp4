@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.awt.geom.Point2D;
+
 
 public final class Configuration {
     private static String inputFileName = "config.txt";
@@ -88,7 +90,7 @@ public final class Configuration {
 
         System.out.println("Enter Time Limit [-1 -> Balance time; -2 -> 2 * Balance Time]:");
         Integer selectedTimeLimit = null;
-        while(selectedTimeLimit == null || selectedTimeLimit <= 0) {
+        while(selectedTimeLimit == null) {
             selectedTimeLimit = stringToInt(scanner.nextLine());
         }
         timeLimit = selectedTimeLimit;
