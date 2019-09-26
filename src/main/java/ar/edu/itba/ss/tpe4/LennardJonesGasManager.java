@@ -53,6 +53,7 @@ public class LennardJonesGasManager {
 				break;
 			case -2:
 				timeLimit = this.balanceTime > 0 ? this.balanceTime * 2 : Integer.MAX_VALUE;
+				break;
 			default:
 				timeLimit = Configuration.getTimeLimit();
 		}
@@ -119,7 +120,7 @@ public class LennardJonesGasManager {
 		// then with that angle we calculate the components of the force in X and Y coordinates
 		// and then we add that to the total force (for each component)
 		for (Particle p: closeParticles) {
-			double distance = Math.max(distance(p, particle), 0.78);
+			double distance = Math.max(distance(p, particle), 0.75);
 			double forceModulus = getParticleForce(distance);
 			double forceAngle = Math.atan2(p.getPosition().y - particle.getPosition().y, p.getPosition().x - particle.getPosition().x);
 			totalForceX += Math.cos(forceAngle) * forceModulus;
@@ -128,7 +129,7 @@ public class LennardJonesGasManager {
 
 		// Same thing but with the particles that allow for wall collisions
 		for (Particle wall: wallColliders) {
-			double distance = Math.max(distance(wall, particle), 0.78);
+			double distance = Math.max(distance(wall, particle), 0.75);
 			double forceModulus = getParticleForce(distance);
 			double forceAngle = Math.atan2(wall.getPosition().y - particle.getPosition().y, wall.getPosition().x - particle.getPosition().x);
 			totalForceX += Math.cos(forceAngle) * forceModulus;
@@ -218,7 +219,7 @@ public class LennardJonesGasManager {
 
 	public void execute() {
 		double accumulatedTime = 0.0; // s
-		double animationOutputTimeLimit = 0.100; // s
+		double animationOutputTimeLimit = 0.1; // s | 10fps
 		double animationOutputTime = 0.0; // s
 		this.previousParticles = initPreviousParticles(grid.getParticles());
 
@@ -236,6 +237,7 @@ public class LennardJonesGasManager {
 			// get balance time
 			if (balanceTime == 0 && isBalanced()) {
 				balanceTime = accumulatedTime;
+				System.out.println("Balance time: " + balanceTime);
 			}
 
 			
