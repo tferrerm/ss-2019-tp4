@@ -29,7 +29,7 @@ public final class Configuration {
     private static final double OSCILLATOR_MASS = 70; // kg
     public static final double OSCILLATOR_K = 10e4; // N/m
     public static final double OSCILLATOR_GAMMA = 100; // kg/s
-    private static final double OSCILLATOR_A = 0.1; // HACER
+    private static final double OSCILLATOR_A = 1; // HACER
     private static final double OSCILLATOR_INIT_POS = 1; // m
     private static final double OSCILLATOR_INIT_VEL = - OSCILLATOR_A * OSCILLATOR_GAMMA / (2 * OSCILLATOR_MASS); // m/s
     
@@ -291,7 +291,7 @@ public final class Configuration {
     }
 
     private static void writeOvitoParticle(final FileWriter fw, final Particle particle) throws IOException {
-        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + (1 + particle.getPosition().getX()) 
+        fw.write(particle.getId() + " " + particle.getRadius() + " " + particle.getMass() + " " + particle.getPosition().getX()
         		+ " " + particle.getPosition().getY() + " " + particle.getVelocity().getX() + " " 
         		+ particle.getVelocity().getY());
         fw.write('\n');

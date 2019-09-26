@@ -8,7 +8,7 @@ M = 70.0
 def oscillator_func(t):
     return A * numpy.exp(-(GAMMA / (2 * M)) * t) * numpy.cos(
       numpy.sqrt(K / M - GAMMA * GAMMA / (4 * M * M)) * t
-    ) + 1
+    )
 
 # Calculate euclidean distance between two points
 def calculateDistance(a, b):
