@@ -136,3 +136,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+*.xyz
+*.tmp
+.DS_Store
+.vscode
+config.txt
