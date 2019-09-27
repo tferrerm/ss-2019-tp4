@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-import java.awt.geom.Point2D;
 
 
 public final class Configuration {
@@ -27,14 +26,14 @@ public final class Configuration {
     private static final int OSCILLATOR_PARTICLE_COUNT = 1;
     private static final double OSCILLATOR_RADIUS = 0;
     private static final double OSCILLATOR_MASS = 70; // kg
-    public static final double OSCILLATOR_K = 10e4; // N/m
+    public static final double OSCILLATOR_K = 1e4; // N/m
     public static final double OSCILLATOR_GAMMA = 100; // kg/s
-    private static final double OSCILLATOR_A = 0.1; // HACER
+    private static final double OSCILLATOR_A = 1; // m
     private static final double OSCILLATOR_INIT_POS = 1; // m
     private static final double OSCILLATOR_INIT_VEL = - OSCILLATOR_A * OSCILLATOR_GAMMA / (2 * OSCILLATOR_MASS); // m/s
     private static final int OSCILLATOR_SHIFTING = 1;
     
-    private static final int GAS_PARTICLE_COUNT = 300;
+    private static final int GAS_PARTICLE_COUNT = 100;
     public static final double GAS_PARTICLE_RADIUS = 0.005;
     public static final double GAS_EPSILON = 2; // adimensional
     public static final double GAS_Rm = 1; // adimensional
@@ -45,21 +44,23 @@ public final class Configuration {
     public static final double GAS_RANGE = 5; // m
     public static final double GAS_BOX_HEIGHT = 200; // m
     public static final double GAS_BOX_WIDTH = 400; // m
-    public static final double GAS_BOX_HOLE_SIZE = 50; // m
-    public static final double GAS_BOX_HOLE_POSITION = 75; // m
+    public static double GAS_BOX_HOLE_SIZE = 50; // m
+    public static double GAS_BOX_HOLE_POSITION = 75; // m
     public static final double GAS_BOX_SPLIT = 200; // m
+	
+    public static final int GAS_TEST_CYCLES = 10;
+	public static final double GAS_TEST_INIT_HOLE_SIZE = 50; // m
 
     private Configuration() {
 
     }
     
     public static Mode requestMode() {
-    	@SuppressWarnings("resource")
-		Scanner scanner = new Scanner(System.in);
+    	Scanner scanner = new Scanner(System.in);
     	
-    	System.out.println("Enter Mode [0 -> Oscillator; 1 -> Lennard-Jones Gas]: ");
+    	System.out.println("Enter Mode [0 -> Oscillator; 1 -> Lennard-Jones Gas; 2 -> Gas Hole Test Runs]: ");
         Integer selectedMode = null;
-        while (selectedMode == null || selectedMode < 0 || selectedMode > 1) {
+        while (selectedMode == null || selectedMode < 0 || selectedMode > 2) {
         	selectedMode = stringToInt(scanner.nextLine());
         }
         mode = Mode.valueOf(selectedMode).get();
@@ -68,18 +69,22 @@ public final class Configuration {
         	particleCount = OSCILLATOR_PARTICLE_COUNT;
         else
         	particleCount = GAS_PARTICLE_COUNT;
+        requestParameters(scanner);
+        scanner.close();
         return mode;
     }
 
-    public static void requestParameters() {
-        Scanner scanner = new Scanner(System.in);
-        
-        System.out.println("Enter Integrator [0 -> Verlet; 1 -> Gear Predictor-Corrector; 2 -> Beeman]: ");
-        Integer selectedIntegrator = null;
-        while (selectedIntegrator == null || selectedIntegrator < 0 || selectedIntegrator > 2) {
-        	selectedIntegrator = stringToInt(scanner.nextLine());
+    public static void requestParameters(Scanner scanner) {
+        if(mode == Mode.OSCILLATOR) {
+        	System.out.println("Enter Integrator [0 -> Verlet; 1 -> Gear Predictor-Corrector; 2 -> Beeman]: ");
+            Integer selectedIntegrator = null;
+            while (selectedIntegrator == null || selectedIntegrator < 0 || selectedIntegrator > 2) {
+            	selectedIntegrator = stringToInt(scanner.nextLine());
+            }
+            integrator = Integrator.valueOf(selectedIntegrator).get();
+        } else {
+        	integrator = Integrator.VERLET;
         }
-        integrator = Integrator.valueOf(selectedIntegrator).get();
         
         System.out.println("Enter Time Step:");
         Double selectedTimeStep = null;
@@ -87,22 +92,26 @@ public final class Configuration {
         	selectedTimeStep = stringToDouble(scanner.nextLine());
         }
         timeStep = selectedTimeStep;
-
-        System.out.println("Enter Time Limit [-1 -> Balance time; -2 -> 2 * Balance Time]:");
+        
+        if(mode == Mode.OSCILLATOR) {
+        	System.out.println("Enter Time Limit:");
+        } else {
+        	System.out.println("Enter Time Limit [-1 -> Balance time; -2 -> 2 * Balance Time]:");
+        }
         Integer selectedTimeLimit = null;
         while(selectedTimeLimit == null) {
             selectedTimeLimit = stringToInt(scanner.nextLine());
         }
         timeLimit = selectedTimeLimit;
-
-        scanner.close();
+        
     }
 
     /* Parameters must have already been requested */
     public static List<Particle> generateRandomInputFilesAndParseConfiguration() {
         generateInputFile();
         List<Particle> particles = parseConfiguration();
-        generateOvitoOutputFile();
+        if(mode != Mode.GAS_TEST_RUNS)
+        	generateOvitoOutputFile();
         return particles;
     }
 
@@ -115,6 +124,7 @@ public final class Configuration {
             case OSCILLATOR:
             	return parseOscillatorConfig(br);
 			case LENNARD_JONES_GAS:
+			case GAS_TEST_RUNS:
             	return parseGasConfig(br);
             default:
             	throw new IllegalStateException();
@@ -173,6 +183,7 @@ public final class Configuration {
         	particles.add(new Particle(OSCILLATOR_RADIUS, OSCILLATOR_MASS, x, y, vx, vy));
         	break;
         case LENNARD_JONES_GAS:
+        case GAS_TEST_RUNS:
         	particles.add(new Particle(GAS_PARTICLE_RADIUS, GAS_PARTICLE_MASS, x, y, vx, vy));
         	break;
         }
@@ -203,7 +214,7 @@ public final class Configuration {
         System.exit(1);
     }
 
-    /* Time (0) - Big Particle Properties - Small Particles Properties */
+    /* Time (0) */
     private static void generateInputFile() {
         List<Particle> particles = new ArrayList<>();
         File inputFile = new File(inputFileName);
@@ -218,6 +229,7 @@ public final class Configuration {
                 fw.write(OSCILLATOR_INIT_POS + " 0.0 " + OSCILLATOR_INIT_VEL + " 0.0\n");
                 break;
             case LENNARD_JONES_GAS:
+            case GAS_TEST_RUNS:
                 Random r = new Random();
                 for(int i = 0; i < GAS_PARTICLE_COUNT; i++) {
                     double randomPositionX = 0;

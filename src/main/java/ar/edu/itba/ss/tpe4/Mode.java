@@ -6,7 +6,8 @@ import java.util.Optional;
 public enum Mode {
 	
 	OSCILLATOR (0),
-	LENNARD_JONES_GAS (1);
+	LENNARD_JONES_GAS (1),
+	GAS_TEST_RUNS (2);
 	
 	private int mode;
 	

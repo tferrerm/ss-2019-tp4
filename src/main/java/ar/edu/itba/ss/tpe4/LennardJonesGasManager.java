@@ -39,7 +39,6 @@ public class LennardJonesGasManager {
 			}
 		}
 
-
 		return Math.floor(initialChamberAmount - particles.size() / 2) == 0;
 	}
 
@@ -217,7 +216,7 @@ public class LennardJonesGasManager {
 		return previousParticles;
 	}
 
-	public void execute() {
+	public double execute() {
 		double accumulatedTime = 0.0; // s
 		double animationOutputTimeLimit = 0.1; // s | 10fps
 		double animationOutputTime = 0.0; // s
@@ -229,15 +228,17 @@ public class LennardJonesGasManager {
 		}
 
 		while(Double.compare(accumulatedTime, getTimeLimit()) <= 0) {
-			if (Double.compare(animationOutputTime, animationOutputTimeLimit) >= 0) {
+			if (Configuration.isGasMode() && Double.compare(animationOutputTime, animationOutputTimeLimit) >= 0) {
 				Configuration.writeGasOvitoOutputFile(accumulatedTime, grid.getParticles());
 				animationOutputTime = 0.0;
 			}
+			
 
 			// get balance time
 			if (balanceTime == 0 && isBalanced()) {
 				balanceTime = accumulatedTime;
-				System.out.println("Balance time: " + balanceTime);
+				System.out.println("Hole Size: " + Configuration.GAS_BOX_HOLE_SIZE + "; Balance time: " + balanceTime);
+				return balanceTime;
 			}
 
 			
@@ -251,6 +252,7 @@ public class LennardJonesGasManager {
 			// bound box
 			updatePositionByBouncing(grid.getParticles());
 		}
+		return accumulatedTime;
 	}
 
 }
